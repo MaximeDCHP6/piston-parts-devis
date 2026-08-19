@@ -1,9 +1,11 @@
 import { notFound } from "next/navigation";
 import { PageHeader } from "@/components/ui/PageHeader";
 import { ButtonLink } from "@/components/ui/Button";
+import { Card, CardBody, CardHeader } from "@/components/ui/Card";
+import { ConfirmSubmitButton } from "@/components/ui/ConfirmSubmitButton";
 import { createClient } from "@/lib/supabase/server";
 import { ResellerForm } from "../ResellerForm";
-import { updateReseller, createResellerLogin, resetResellerPassword } from "../actions";
+import { updateReseller, createResellerLogin, resetResellerPassword, deleteReseller } from "../actions";
 import { ResellerLoginPanel } from "./ResellerLoginPanel";
 
 export default async function EditResellerPage({
@@ -43,6 +45,27 @@ export default async function EditResellerPage({
           resetAction={resetResellerPassword.bind(null, id)}
         />
       </div>
+
+      <Card>
+        <CardHeader>
+          <p className="font-display text-lg text-danger">Zone dangereuse</p>
+        </CardHeader>
+        <CardBody>
+          <form action={deleteReseller} className="flex items-center justify-between gap-4">
+            <input type="hidden" name="id" value={id} />
+            <p className="text-sm text-muted">
+              Supprime ce revendeur, son compte de connexion, ainsi que tous ses devis, commandes, clients et
+              documents associés. Action irréversible.
+            </p>
+            <ConfirmSubmitButton
+              confirmMessage={`Supprimer définitivement "${reseller.company_name}" et toutes ses données (devis, commandes, clients, documents) ? Cette action est irréversible.`}
+              className="shrink-0"
+            >
+              Supprimer ce revendeur
+            </ConfirmSubmitButton>
+          </form>
+        </CardBody>
+      </Card>
     </div>
   );
 }

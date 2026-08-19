@@ -134,9 +134,17 @@ export async function updateReseller(
 
 export async function deleteReseller(formData: FormData) {
   const id = String(formData.get("id"));
-  const supabase = await createClient();
-  await supabase.from("resellers").delete().eq("id", id);
+  const serviceClient = createServiceClient();
+
+  const { data: reseller } = await serviceClient.from("resellers").select("user_id").eq("id", id).single();
+  if (reseller?.user_id) {
+    await serviceClient.auth.admin.deleteUser(reseller.user_id);
+  }
+
+  await serviceClient.from("resellers").delete().eq("id", id);
+
   revalidatePath("/admin/resellers");
+  redirect("/admin/resellers");
 }
 
 export interface CreateLoginState {

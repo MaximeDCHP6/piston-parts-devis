@@ -242,6 +242,7 @@ export async function deleteQuote(formData: FormData) {
   const supabase = await createClient();
   await supabase.from("quotes").delete().eq("id", id);
   revalidatePath("/admin/quotes");
+  redirect("/admin/quotes");
 }
 
 export async function markQuoteSent(quoteId: string, redirectTo: string) {

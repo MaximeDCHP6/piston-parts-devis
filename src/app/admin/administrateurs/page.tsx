@@ -5,6 +5,7 @@ import { createServiceClient } from "@/lib/supabase/service";
 import { getCurrentUser } from "@/lib/auth";
 import { AdminCreateForm } from "./AdminCreateForm";
 import { AdminResetButton } from "./AdminResetButton";
+import { AdminDeleteButton } from "./AdminDeleteButton";
 
 export default async function AdministratorsPage() {
   const currentUser = await getCurrentUser();
@@ -55,7 +56,10 @@ export default async function AdministratorsPage() {
                 </td>
                 <td className="px-4 py-3 text-muted">{new Date(admin.createdAt).toLocaleDateString("fr-FR")}</td>
                 <td className="px-4 py-3 text-right">
-                  <AdminResetButton userId={admin.id} />
+                  <div className="flex items-start justify-end gap-3">
+                    <AdminResetButton userId={admin.id} />
+                    {admin.id !== currentUser?.id && <AdminDeleteButton userId={admin.id} />}
+                  </div>
                 </td>
               </tr>
             ))}

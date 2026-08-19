@@ -15,6 +15,7 @@ import {
   markQuoteUnaccepted,
   uploadQuoteFile,
   deleteQuoteFile,
+  deleteQuote,
 } from "../actions";
 import { QuoteFileUploadForm } from "./QuoteFileUploadForm";
 import type { QuoteStatus } from "@/lib/types/database";
@@ -141,6 +142,26 @@ export default async function QuoteDetailPage({
               ))}
             </ul>
           )}
+        </CardBody>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <p className="font-display text-lg text-danger">Zone dangereuse</p>
+        </CardHeader>
+        <CardBody>
+          <form action={deleteQuote} className="flex items-center justify-between gap-4">
+            <input type="hidden" name="id" value={id} />
+            <p className="text-sm text-muted">
+              Supprime définitivement ce devis, ses lignes et la commande éventuellement liée.
+            </p>
+            <ConfirmSubmitButton
+              confirmMessage="Supprimer définitivement ce devis ? Cette action est irréversible."
+              className="shrink-0"
+            >
+              Supprimer ce devis
+            </ConfirmSubmitButton>
+          </form>
         </CardBody>
       </Card>
     </div>
