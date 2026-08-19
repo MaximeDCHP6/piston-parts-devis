@@ -4,16 +4,7 @@ import { EmptyState } from "@/components/ui/EmptyState";
 import { Badge } from "@/components/ui/Badge";
 import { createClient } from "@/lib/supabase/server";
 import { getCurrentResellerId } from "@/lib/reseller";
-import type { ResellerFileType } from "@/lib/types/database";
-
-const TYPE_LABEL: Record<ResellerFileType, string> = {
-  invoice: "Facture",
-  other: "Autre document",
-};
-
-function isFileType(value: string): value is ResellerFileType {
-  return value in TYPE_LABEL;
-}
+import { RESELLER_FILE_TYPE_LABEL, RESELLER_FILE_TYPE_TONE, isResellerFileType } from "@/lib/status";
 
 export default async function EspaceDocumentsPage({
   searchParams,
@@ -30,7 +21,7 @@ export default async function EspaceDocumentsPage({
     .eq("reseller_id", resellerId ?? "")
     .order("uploaded_at", { ascending: false });
 
-  if (type && isFileType(type)) query = query.eq("type", type);
+  if (type && isResellerFileType(type)) query = query.eq("type", type);
 
   const { data: files } = await query;
 
@@ -49,10 +40,7 @@ export default async function EspaceDocumentsPage({
           {
             key: "type",
             label: "Tous les documents",
-            options: [
-              { value: "invoice", label: "Factures" },
-              { value: "other", label: "Autres documents" },
-            ],
+            options: Object.entries(RESELLER_FILE_TYPE_LABEL).map(([value, label]) => ({ value, label })),
           },
         ]}
       />
@@ -77,7 +65,7 @@ export default async function EspaceDocumentsPage({
                   <tr key={file.id} className="border-b border-border last:border-0">
                     <td className="px-4 py-3 text-ink">{file.label ?? "Document"}</td>
                     <td className="px-4 py-3">
-                      <Badge tone={file.type === "invoice" ? "accent" : "neutral"}>{TYPE_LABEL[file.type]}</Badge>
+                      <Badge tone={RESELLER_FILE_TYPE_TONE[file.type]}>{RESELLER_FILE_TYPE_LABEL[file.type]}</Badge>
                     </td>
                     <td className="px-4 py-3 text-muted">{new Date(file.uploaded_at).toLocaleDateString("fr-FR")}</td>
                     <td className="px-4 py-3 text-right">

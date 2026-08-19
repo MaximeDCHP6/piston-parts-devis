@@ -7,12 +7,7 @@ import { ConfirmSubmitButton } from "@/components/ui/ConfirmSubmitButton";
 import { createClient } from "@/lib/supabase/server";
 import { uploadResellerFile, deleteResellerFile } from "./actions";
 import { UploadFileForm } from "./UploadFileForm";
-import type { ResellerFileType } from "@/lib/types/database";
-
-const TYPE_LABEL: Record<ResellerFileType, string> = {
-  invoice: "Facture",
-  other: "Autre document",
-};
+import { RESELLER_FILE_TYPE_LABEL, RESELLER_FILE_TYPE_TONE } from "@/lib/status";
 
 export default async function ResellerFilesPage({
   params,
@@ -59,7 +54,7 @@ export default async function ResellerFilesPage({
                 <tr key={file.id} className="border-b border-border last:border-0">
                   <td className="px-4 py-3 text-ink">{file.label ?? "Document"}</td>
                   <td className="px-4 py-3">
-                    <Badge tone={file.type === "invoice" ? "accent" : "neutral"}>{TYPE_LABEL[file.type]}</Badge>
+                    <Badge tone={RESELLER_FILE_TYPE_TONE[file.type]}>{RESELLER_FILE_TYPE_LABEL[file.type]}</Badge>
                   </td>
                   <td className="px-4 py-3 text-muted">{new Date(file.uploaded_at).toLocaleDateString("fr-FR")}</td>
                   <td className="px-4 py-3 text-right">

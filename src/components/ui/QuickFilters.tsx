@@ -15,16 +15,23 @@ interface SelectFilter {
   options: SelectFilterOption[];
 }
 
+interface DateRangeFilter {
+  fromKey: string;
+  toKey: string;
+}
+
 export function QuickFilters({
   searchPlaceholder = "Rechercher…",
   searchParamKey = "q",
   selectFilters = [],
   showSearch = true,
+  dateRange,
 }: {
   searchPlaceholder?: string;
   searchParamKey?: string;
   selectFilters?: SelectFilter[];
   showSearch?: boolean;
+  dateRange?: DateRangeFilter;
 }) {
   const router = useRouter();
   const pathname = usePathname();
@@ -70,6 +77,25 @@ export function QuickFilters({
           ))}
         </Select>
       ))}
+      {dateRange && (
+        <div className="flex items-center gap-2">
+          <Input
+            type="date"
+            aria-label="Du"
+            defaultValue={searchParams.get(dateRange.fromKey) ?? ""}
+            onChange={(e) => updateParam(dateRange.fromKey, e.target.value)}
+            className="sm:max-w-[160px]"
+          />
+          <span className="text-sm text-muted">→</span>
+          <Input
+            type="date"
+            aria-label="Au"
+            defaultValue={searchParams.get(dateRange.toKey) ?? ""}
+            onChange={(e) => updateParam(dateRange.toKey, e.target.value)}
+            className="sm:max-w-[160px]"
+          />
+        </div>
+      )}
     </div>
   );
 }

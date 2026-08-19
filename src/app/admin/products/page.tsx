@@ -31,7 +31,14 @@ export default async function ProductsPage({
       <PageHeader
         title="Catalogue produits"
         description="Produits réutilisables dans la création de devis."
-        actions={<ButtonLink href="/admin/products/new">Nouveau produit</ButtonLink>}
+        actions={
+          <div className="flex items-center gap-2">
+            <ButtonLink href="/admin/products/import" variant="secondary">
+              Importer CSV
+            </ButtonLink>
+            <ButtonLink href="/admin/products/new">Nouveau produit</ButtonLink>
+          </div>
+        }
       />
 
       <QuickFilters

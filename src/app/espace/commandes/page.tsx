@@ -15,14 +15,21 @@ function isOrderStatus(value: string): value is OrderStatus {
 export default async function EspaceOrdersPage({
   searchParams,
 }: {
-  searchParams: Promise<{ q?: string; status?: string }>;
+  searchParams: Promise<{ q?: string; status?: string; client?: string }>;
 }) {
-  const { q, status } = await searchParams;
+  const { q, status, client } = await searchParams;
   const resellerId = await getCurrentResellerId();
   const supabase = await createClient();
 
   let matchingQuoteIds: string[] | null = null;
-  if (q) {
+  if (client) {
+    const { data: matchingQuotes } = await supabase
+      .from("quotes")
+      .select("id")
+      .eq("reseller_id", resellerId ?? "")
+      .eq("client_name", client);
+    matchingQuoteIds = (matchingQuotes ?? []).map((r) => r.id);
+  } else if (q) {
     const { data: matchingQuotes } = await supabase
       .from("quotes")
       .select("id")
@@ -32,7 +39,7 @@ export default async function EspaceOrdersPage({
   }
 
   let orders: Order[] = [];
-  if (!q || (matchingQuoteIds && matchingQuoteIds.length > 0)) {
+  if (!matchingQuoteIds || matchingQuoteIds.length > 0) {
     let query = supabase
       .from("orders")
       .select("*")
@@ -47,10 +54,12 @@ export default async function EspaceOrdersPage({
   }
 
   const quoteIds = orders.map((o) => o.quote_id);
-  const { data: quotes } =
+  const [{ data: quotes }, { data: contacts }] = await Promise.all([
     quoteIds.length > 0
-      ? await supabase.from("quotes").select("id, client_name").in("id", quoteIds)
-      : { data: [] as { id: string; client_name: string | null }[] };
+      ? supabase.from("quotes").select("id, client_name").in("id", quoteIds)
+      : Promise.resolve({ data: [] as { id: string; client_name: string | null }[] }),
+    supabase.from("client_contacts").select("name").eq("reseller_id", resellerId ?? "").order("name", { ascending: true }),
+  ]);
   const clientNameByQuoteId = new Map((quotes ?? []).map((quoteRow) => [quoteRow.id, quoteRow.client_name]));
 
   return (
@@ -60,6 +69,11 @@ export default async function EspaceOrdersPage({
       <QuickFilters
         searchPlaceholder="Rechercher un client…"
         selectFilters={[
+          {
+            key: "client",
+            label: "Tous les clients",
+            options: (contacts ?? []).map((c) => ({ value: c.name, label: c.name })),
+          },
           {
             key: "status",
             label: "Tous les statuts",

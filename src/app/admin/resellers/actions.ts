@@ -10,6 +10,9 @@ import { createServiceClient } from "@/lib/supabase/service";
 const ResellerSchema = z.object({
   company_name: z.string().trim().min(1, "Le nom du revendeur est requis."),
   contact_email: z.string().trim().email("E-mail invalide.").optional().or(z.literal("")),
+  phone: z.string().trim().optional(),
+  siret: z.string().trim().optional(),
+  vat_intra: z.string().trim().optional(),
   margin_percent: z.string().transform((v) => Number(v) || 0),
   primary_color: z.string().trim().optional(),
   secondary_color: z.string().trim().optional(),
@@ -25,6 +28,9 @@ function parseReseller(formData: FormData) {
   return ResellerSchema.safeParse({
     company_name: formData.get("company_name"),
     contact_email: formData.get("contact_email"),
+    phone: formData.get("phone"),
+    siret: formData.get("siret"),
+    vat_intra: formData.get("vat_intra"),
     margin_percent: formData.get("margin_percent"),
     primary_color: formData.get("primary_color"),
     secondary_color: formData.get("secondary_color"),
@@ -66,6 +72,9 @@ export async function createReseller(
     .insert({
       company_name: parsed.data.company_name,
       contact_email: parsed.data.contact_email || null,
+      phone: parsed.data.phone || null,
+      siret: parsed.data.siret || null,
+      vat_intra: parsed.data.vat_intra || null,
       margin_percent: parsed.data.margin_percent,
       primary_color: parsed.data.primary_color || "#1a1a1a",
       secondary_color: parsed.data.secondary_color || "#6b6b6b",
@@ -104,6 +113,9 @@ export async function updateReseller(
     .update({
       company_name: parsed.data.company_name,
       contact_email: parsed.data.contact_email || null,
+      phone: parsed.data.phone || null,
+      siret: parsed.data.siret || null,
+      vat_intra: parsed.data.vat_intra || null,
       margin_percent: parsed.data.margin_percent,
       primary_color: parsed.data.primary_color || "#1a1a1a",
       secondary_color: parsed.data.secondary_color || "#6b6b6b",
@@ -169,5 +181,35 @@ export async function createResellerLogin(
   if (linkError) return { error: linkError.message, password: null };
 
   revalidatePath(`/admin/resellers/${resellerId}`);
+  return { error: null, password };
+}
+
+export interface ResetPasswordState {
+  error: string | null;
+  password: string | null;
+}
+
+// Réinitialise le mot de passe d'un revendeur déjà connecté. Même logique
+// que la création initiale : affiché une seule fois, à communiquer par
+// l'admin lui-même.
+export async function resetResellerPassword(
+  resellerId: string,
+  _prevState: ResetPasswordState,
+  _formData: FormData,
+): Promise<ResetPasswordState> {
+  const serviceClient = createServiceClient();
+
+  const { data: reseller } = await serviceClient
+    .from("resellers")
+    .select("user_id")
+    .eq("id", resellerId)
+    .single();
+
+  if (!reseller?.user_id) return { error: "Ce revendeur n'a pas encore de compte.", password: null };
+
+  const password = nanoid(14);
+  const { error } = await serviceClient.auth.admin.updateUserById(reseller.user_id, { password });
+  if (error) return { error: error.message, password: null };
+
   return { error: null, password };
 }

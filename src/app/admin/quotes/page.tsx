@@ -15,20 +15,22 @@ function isQuoteStatus(value: string): value is QuoteStatus {
 export default async function QuotesPage({
   searchParams,
 }: {
-  searchParams: Promise<{ q?: string; reseller?: string; status?: string }>;
+  searchParams: Promise<{ q?: string; reseller?: string; status?: string; from?: string; to?: string }>;
 }) {
-  const { q, reseller, status } = await searchParams;
+  const { q, reseller, status, from, to } = await searchParams;
   const supabase = await createClient();
 
   let query = supabase
     .from("quotes")
     .select("*")
-    .eq("type", "to_reseller")
+    .eq("type", "to_client")
     .order("created_at", { ascending: false });
 
-  if (q) query = query.ilike("client_name", `%${q}%`);
+  if (q) query = query.or(`client_name.ilike.%${q}%,order_number.ilike.%${q}%`);
   if (reseller) query = query.eq("reseller_id", reseller);
   if (status && isQuoteStatus(status)) query = query.eq("status", status);
+  if (from) query = query.gte("created_at", from);
+  if (to) query = query.lte("created_at", `${to}T23:59:59`);
 
   const [{ data: quotes }, { data: resellers }] = await Promise.all([
     query,
@@ -41,12 +43,13 @@ export default async function QuotesPage({
     <div className="flex flex-col gap-6">
       <PageHeader
         title="Devis"
-        description="Devis établis pour vos revendeurs."
+        description="Devis établis pour les clients finaux de vos revendeurs."
         actions={<ButtonLink href="/admin/quotes/new">Nouveau devis</ButtonLink>}
       />
 
       <QuickFilters
-        searchPlaceholder="Rechercher un client final…"
+        searchPlaceholder="Client final ou n° de commande…"
+        dateRange={{ fromKey: "from", toKey: "to" }}
         selectFilters={[
           {
             key: "reseller",
@@ -64,16 +67,17 @@ export default async function QuotesPage({
       {!quotes || quotes.length === 0 ? (
         <EmptyState
           title="Aucun devis"
-          description="Créez votre premier devis pour un revendeur."
+          description="Créez votre premier devis pour le client d'un revendeur."
           action={<ButtonLink href="/admin/quotes/new">Nouveau devis</ButtonLink>}
         />
       ) : (
         <div className="overflow-x-auto rounded-md border border-border bg-surface">
-          <table className="w-full min-w-[720px] text-sm">
+          <table className="w-full min-w-[760px] text-sm">
             <thead>
               <tr className="border-b border-border text-left text-xs uppercase tracking-wide text-muted">
-                <th className="px-4 py-3 font-medium">Revendeur</th>
                 <th className="px-4 py-3 font-medium">Client final</th>
+                <th className="px-4 py-3 font-medium">Revendeur</th>
+                <th className="px-4 py-3 font-medium">N° commande</th>
                 <th className="px-4 py-3 font-medium">Statut</th>
                 <th className="px-4 py-3 font-medium">Créé le</th>
               </tr>
@@ -83,10 +87,11 @@ export default async function QuotesPage({
                 <tr key={quote.id} className="border-b border-border last:border-0">
                   <td className="px-4 py-3 text-ink">
                     <Link href={`/admin/quotes/${quote.id}`} className="hover:underline">
-                      {resellerNameById.get(quote.reseller_id) ?? "—"}
+                      {quote.client_name ?? "—"}
                     </Link>
                   </td>
-                  <td className="px-4 py-3 text-muted">{quote.client_name ?? "—"}</td>
+                  <td className="px-4 py-3 text-muted">{resellerNameById.get(quote.reseller_id) ?? "—"}</td>
+                  <td className="px-4 py-3 text-muted">{quote.order_number ?? "—"}</td>
                   <td className="px-4 py-3">
                     <Badge tone={QUOTE_STATUS_TONE[quote.status as QuoteStatus]}>
                       {QUOTE_STATUS_LABEL[quote.status as QuoteStatus]}

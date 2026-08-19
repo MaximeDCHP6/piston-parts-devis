@@ -30,3 +30,7 @@ export function formatEUR(value: number): string {
 export function applyMargin(unitPrice: number, marginPercent: number): number {
   return Math.round(unitPrice * (1 + marginPercent / 100) * 100) / 100;
 }
+
+export function priceHistoryKey(resellerId: string, productId: string): string {
+  return `${resellerId}::${productId}`;
+}

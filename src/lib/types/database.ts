@@ -18,7 +18,7 @@ export type QuoteStatus =
   | "refused"
   | "expired";
 export type OrderStatus = "preparation" | "expediee" | "livree" | "facturee";
-export type ResellerFileType = "invoice" | "other";
+export type ResellerFileType = "invoice" | "quote" | "other";
 
 export type Profile = {
   id: string;
@@ -38,6 +38,9 @@ export type Reseller = {
   signature_text: string | null;
   margin_percent: number;
   contact_email: string | null;
+  phone: string | null;
+  siret: string | null;
+  vat_intra: string | null;
   created_at: string;
 };
 
@@ -59,6 +62,10 @@ export type Quote = {
   status: QuoteStatus;
   client_name: string | null;
   client_email: string | null;
+  client_address: string | null;
+  vehicle_registration: string | null;
+  order_number: string | null;
+  quote_number: string | null;
   valid_until: string | null;
   secure_token: string | null;
   pdf_url: string | null;
@@ -91,10 +98,25 @@ export type Order = {
 export type ResellerFile = {
   id: string;
   reseller_id: string;
+  quote_id: string | null;
   type: ResellerFileType;
   file_url: string;
   label: string | null;
   uploaded_at: string;
+};
+
+export type QuoteLineCost = {
+  quote_line_id: string;
+  cost_price: number;
+};
+
+export type ClientContact = {
+  id: string;
+  reseller_id: string;
+  name: string;
+  email: string | null;
+  address: string | null;
+  created_at: string;
 };
 
 export type AuditLog = {
@@ -125,6 +147,8 @@ export type Database = {
       orders: TableDef<Order, Partial<Order> & { quote_id: string; reseller_id: string }>;
       reseller_files: TableDef<ResellerFile, Partial<ResellerFile> & { reseller_id: string; file_url: string }>;
       audit_logs: TableDef<AuditLog, Partial<AuditLog> & { action: string }>;
+      quote_line_costs: TableDef<QuoteLineCost, QuoteLineCost>;
+      client_contacts: TableDef<ClientContact, Partial<ClientContact> & { reseller_id: string; name: string }>;
     };
     Views: Record<string, never>;
     Functions: Record<string, never>;

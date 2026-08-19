@@ -9,6 +9,7 @@ const NAV_ITEMS = [
   { href: "/admin/orders", label: "Commandes" },
   { href: "/admin/resellers", label: "Revendeurs" },
   { href: "/admin/products", label: "Catalogue" },
+  { href: "/admin/administrateurs", label: "Administrateurs" },
 ];
 
 export default async function AdminLayout({ children }: { children: React.ReactNode }) {
@@ -19,8 +20,8 @@ export default async function AdminLayout({ children }: { children: React.ReactN
 
   return (
     <AppShell
-      brand="Gravelin Parts"
-      subtitle="Espace admin"
+      brand="Piston"
+      subtitle="Gravelin Parts · Admin"
       navItems={NAV_ITEMS}
       footer={<SignOutButton label={user.email ?? ""} />}
     >

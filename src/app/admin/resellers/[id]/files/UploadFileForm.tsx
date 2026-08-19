@@ -25,6 +25,7 @@ export function UploadFileForm({
       <Field label="Type" htmlFor="type">
         <Select id="type" name="type" defaultValue="invoice">
           <option value="invoice">Facture</option>
+          <option value="quote">Devis</option>
           <option value="other">Autre document</option>
         </Select>
       </Field>

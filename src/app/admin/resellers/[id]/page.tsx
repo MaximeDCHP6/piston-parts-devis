@@ -3,7 +3,7 @@ import { PageHeader } from "@/components/ui/PageHeader";
 import { ButtonLink } from "@/components/ui/Button";
 import { createClient } from "@/lib/supabase/server";
 import { ResellerForm } from "../ResellerForm";
-import { updateReseller, createResellerLogin } from "../actions";
+import { updateReseller, createResellerLogin, resetResellerPassword } from "../actions";
 import { ResellerLoginPanel } from "./ResellerLoginPanel";
 
 export default async function EditResellerPage({
@@ -21,7 +21,16 @@ export default async function EditResellerPage({
     <div className="flex flex-col gap-8">
       <PageHeader
         title={reseller.company_name}
-        actions={<ButtonLink href={`/admin/resellers/${id}/files`} variant="secondary">Documents</ButtonLink>}
+        actions={
+          <div className="flex items-center gap-2">
+            <ButtonLink href={`/admin/resellers/${id}/clients`} variant="secondary">
+              Clients
+            </ButtonLink>
+            <ButtonLink href={`/admin/resellers/${id}/files`} variant="secondary">
+              Documents
+            </ButtonLink>
+          </div>
+        }
       />
 
       <div className="grid grid-cols-1 gap-8 lg:grid-cols-[2fr_1fr]">
@@ -31,6 +40,7 @@ export default async function EditResellerPage({
           contactEmail={reseller.contact_email ?? ""}
           hasAccount={Boolean(reseller.user_id)}
           action={createResellerLogin.bind(null, id)}
+          resetAction={resetResellerPassword.bind(null, id)}
         />
       </div>
     </div>

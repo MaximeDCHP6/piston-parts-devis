@@ -14,6 +14,43 @@
   --danger-foreground: #fdf3f1;
   --warning: #9a7327;
   --warning-foreground: #fdf8ec;
+  --overlay: rgba(28, 26, 23, 0.05);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --paper: #17140f;
+    --surface: #201c16;
+    --ink: #f2ede4;
+    --muted: #a39a8c;
+    --border: #37312a;
+    --accent: #cf9861;
+    --accent-foreground: #1c1a17;
+    --success: #6fbd93;
+    --success-foreground: #0d2318;
+    --danger: #e08575;
+    --danger-foreground: #2a0f0a;
+    --warning: #e0b563;
+    --warning-foreground: #2a1f08;
+    --overlay: rgba(242, 237, 228, 0.08);
+  }
+}
+
+:root[data-theme="dark"] {
+  --paper: #17140f;
+  --surface: #201c16;
+  --ink: #f2ede4;
+  --muted: #a39a8c;
+  --border: #37312a;
+  --accent: #cf9861;
+  --accent-foreground: #1c1a17;
+  --success: #6fbd93;
+  --success-foreground: #0d2318;
+  --danger: #e08575;
+  --danger-foreground: #2a0f0a;
+  --warning: #e0b563;
+  --warning-foreground: #2a1f08;
+  --overlay: rgba(242, 237, 228, 0.08);
 }
 
 @theme inline {
@@ -30,6 +67,7 @@
   --color-danger-foreground: var(--danger-foreground);
   --color-warning: var(--warning);
   --color-warning-foreground: var(--warning-foreground);
+  --color-overlay: var(--overlay);
   --font-sans: var(--font-body);
   --font-display: var(--font-display);
 }

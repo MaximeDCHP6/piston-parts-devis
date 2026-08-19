@@ -9,6 +9,7 @@ const NAV_ITEMS = [
   { href: "/espace/devis", label: "Devis" },
   { href: "/espace/commandes", label: "Commandes" },
   { href: "/espace/documents", label: "Documents" },
+  { href: "/espace/parametres", label: "Paramètres" },
 ];
 
 export default async function EspaceLayout({ children }: { children: React.ReactNode }) {
@@ -27,7 +28,7 @@ export default async function EspaceLayout({ children }: { children: React.React
   return (
     <AppShell
       brand={reseller?.company_name ?? "Mon espace"}
-      subtitle="Espace revendeur"
+      subtitle="Espace revendeur · Piston"
       navItems={NAV_ITEMS}
       footer={<SignOutButton label={user.email ?? ""} />}
     >

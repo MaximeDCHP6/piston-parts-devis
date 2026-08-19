@@ -39,7 +39,7 @@ export function AppShell({
               "rounded-sm px-3 py-2 text-sm font-medium transition-colors",
               active
                 ? "bg-ink text-paper"
-                : "text-ink/80 hover:bg-black/5",
+                : "text-ink/80 hover:bg-overlay",
             )}
           >
             {item.label}

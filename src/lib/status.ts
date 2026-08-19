@@ -1,4 +1,4 @@
-import type { OrderStatus, QuoteStatus } from "@/lib/types/database";
+import type { OrderStatus, QuoteStatus, ResellerFileType } from "@/lib/types/database";
 
 export const QUOTE_STATUS_LABEL: Record<QuoteStatus, string> = {
   draft: "Brouillon",
@@ -31,3 +31,19 @@ export const ORDER_STATUS_TONE: Record<OrderStatus, "neutral" | "accent" | "succ
   livree: "success",
   facturee: "success",
 };
+
+export const RESELLER_FILE_TYPE_LABEL: Record<ResellerFileType, string> = {
+  invoice: "Facture",
+  quote: "Devis",
+  other: "Autre document",
+};
+
+export const RESELLER_FILE_TYPE_TONE: Record<ResellerFileType, "neutral" | "accent" | "success" | "danger" | "warning"> = {
+  invoice: "accent",
+  quote: "success",
+  other: "neutral",
+};
+
+export function isResellerFileType(value: string): value is ResellerFileType {
+  return value in RESELLER_FILE_TYPE_LABEL;
+}

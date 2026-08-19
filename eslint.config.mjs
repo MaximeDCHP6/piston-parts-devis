@@ -13,6 +13,14 @@ const eslintConfig = defineConfig([
     "build/**",
     "next-env.d.ts",
   ]),
+  {
+    rules: {
+      // Convention utilisée dans tout le repo : préfixer par `_` les
+      // paramètres requis par une signature (ex. les server actions liées
+      // à useActionState) mais volontairement inutilisés.
+      "@typescript-eslint/no-unused-vars": ["warn", { argsIgnorePattern: "^_" }],
+    },
+  },
 ]);
 
 export default eslintConfig;

@@ -22,9 +22,21 @@ export function ResellerForm({
         <Input id="company_name" name="company_name" defaultValue={reseller?.company_name} required />
       </Field>
 
-      <Field label="E-mail de contact" htmlFor="contact_email" hint="Utilisé pour pré-remplir les mails générés (Reply-To).">
+      <Field label="E-mail de contact" htmlFor="contact_email" hint="Utilisé pour pré-remplir les mails générés (Reply-To) et affiché sur le devis.">
         <Input id="contact_email" name="contact_email" type="email" defaultValue={reseller?.contact_email ?? ""} />
       </Field>
+
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+        <Field label="Téléphone" htmlFor="phone">
+          <Input id="phone" name="phone" defaultValue={reseller?.phone ?? ""} />
+        </Field>
+        <Field label="Siret" htmlFor="siret">
+          <Input id="siret" name="siret" defaultValue={reseller?.siret ?? ""} />
+        </Field>
+        <Field label="TVA Intra" htmlFor="vat_intra">
+          <Input id="vat_intra" name="vat_intra" defaultValue={reseller?.vat_intra ?? ""} />
+        </Field>
+      </div>
 
       <Field label="Taux de marge (%)" htmlFor="margin_percent" hint="Appliqué automatiquement sur le devis destiné au client final.">
         <Input
@@ -54,7 +66,7 @@ export function ResellerForm({
         <Input id="logo" name="logo" type="file" accept="image/*" />
       </Field>
 
-      <Field label="Mentions légales" htmlFor="legal_mentions">
+      <Field label="Adresse" htmlFor="legal_mentions" hint="Une ligne par ligne d'adresse, affichée sous le nom sur le devis.">
         <Textarea id="legal_mentions" name="legal_mentions" rows={3} defaultValue={reseller?.legal_mentions ?? ""} />
       </Field>
 

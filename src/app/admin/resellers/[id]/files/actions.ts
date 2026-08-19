@@ -3,7 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
-import type { ResellerFileType } from "@/lib/types/database";
+import { isResellerFileType } from "@/lib/status";
 
 export interface UploadFileState {
   error: string | null;
@@ -16,7 +16,8 @@ export async function uploadResellerFile(
 ): Promise<UploadFileState> {
   const file = formData.get("file");
   const label = String(formData.get("label") ?? "").trim();
-  const type = (String(formData.get("type") ?? "other")) as ResellerFileType;
+  const typeRaw = String(formData.get("type") ?? "other");
+  const type = isResellerFileType(typeRaw) ? typeRaw : "other";
 
   if (!(file instanceof File) || file.size === 0) {
     return { error: "Sélectionnez un fichier." };

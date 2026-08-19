@@ -6,12 +6,7 @@ import { Badge } from "@/components/ui/Badge";
 import { createClient } from "@/lib/supabase/server";
 import { getCurrentResellerId } from "@/lib/reseller";
 import { QUOTE_STATUS_LABEL, QUOTE_STATUS_TONE } from "@/lib/status";
-import type { QuoteStatus, QuoteType } from "@/lib/types/database";
-
-const TYPE_LABEL: Record<QuoteType, string> = {
-  to_reseller: "Devis fournisseur",
-  to_client: "Devis client final",
-};
+import type { QuoteStatus } from "@/lib/types/database";
 
 function isQuoteStatus(value: string): value is QuoteStatus {
   return value in QUOTE_STATUS_LABEL;
@@ -20,9 +15,9 @@ function isQuoteStatus(value: string): value is QuoteStatus {
 export default async function EspaceDevisPage({
   searchParams,
 }: {
-  searchParams: Promise<{ q?: string; status?: string; type?: string }>;
+  searchParams: Promise<{ q?: string; status?: string; client?: string; from?: string; to?: string }>;
 }) {
-  const { q, status, type } = await searchParams;
+  const { q, status, client, from, to } = await searchParams;
   const resellerId = await getCurrentResellerId();
   const supabase = await createClient();
 
@@ -32,26 +27,29 @@ export default async function EspaceDevisPage({
     .eq("reseller_id", resellerId ?? "")
     .order("created_at", { ascending: false });
 
-  if (q) query = query.ilike("client_name", `%${q}%`);
+  if (q) query = query.or(`client_name.ilike.%${q}%,order_number.ilike.%${q}%`);
   if (status && isQuoteStatus(status)) query = query.eq("status", status);
-  if (type === "to_reseller" || type === "to_client") query = query.eq("type", type);
+  if (client) query = query.eq("client_name", client);
+  if (from) query = query.gte("created_at", from);
+  if (to) query = query.lte("created_at", `${to}T23:59:59`);
 
-  const { data: quotes } = await query;
+  const [{ data: quotes }, { data: contacts }] = await Promise.all([
+    query,
+    supabase.from("client_contacts").select("name").eq("reseller_id", resellerId ?? "").order("name", { ascending: true }),
+  ]);
 
   return (
     <div className="flex flex-col gap-6">
-      <PageHeader title="Devis" description="Vos devis fournisseur et ceux adressés à vos clients." />
+      <PageHeader title="Devis" description="Devis adressés à vos clients." />
 
       <QuickFilters
-        searchPlaceholder="Rechercher un client…"
+        searchPlaceholder="Client ou n° de commande…"
+        dateRange={{ fromKey: "from", toKey: "to" }}
         selectFilters={[
           {
-            key: "type",
-            label: "Tous les types",
-            options: [
-              { value: "to_reseller", label: "Devis fournisseur" },
-              { value: "to_client", label: "Devis client final" },
-            ],
+            key: "client",
+            label: "Tous les clients",
+            options: (contacts ?? []).map((c) => ({ value: c.name, label: c.name })),
           },
           {
             key: "status",
@@ -68,8 +66,8 @@ export default async function EspaceDevisPage({
           <table className="w-full min-w-[640px] text-sm">
             <thead>
               <tr className="border-b border-border text-left text-xs uppercase tracking-wide text-muted">
-                <th className="px-4 py-3 font-medium">Type</th>
                 <th className="px-4 py-3 font-medium">Client</th>
+                <th className="px-4 py-3 font-medium">N° commande</th>
                 <th className="px-4 py-3 font-medium">Statut</th>
                 <th className="px-4 py-3 font-medium">Créé le</th>
               </tr>
@@ -79,10 +77,10 @@ export default async function EspaceDevisPage({
                 <tr key={quote.id} className="border-b border-border last:border-0">
                   <td className="px-4 py-3 text-ink">
                     <Link href={`/espace/devis/${quote.id}`} className="hover:underline">
-                      {TYPE_LABEL[quote.type as QuoteType]}
+                      {quote.client_name ?? "—"}
                     </Link>
                   </td>
-                  <td className="px-4 py-3 text-muted">{quote.client_name ?? "—"}</td>
+                  <td className="px-4 py-3 text-muted">{quote.order_number ?? "—"}</td>
                   <td className="px-4 py-3">
                     <Badge tone={QUOTE_STATUS_TONE[quote.status as QuoteStatus]}>
                       {QUOTE_STATUS_LABEL[quote.status as QuoteStatus]}

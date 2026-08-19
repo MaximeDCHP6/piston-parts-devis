@@ -3,113 +3,143 @@ import { PageHeader } from "@/components/ui/PageHeader";
 import { Card, CardBody, CardHeader } from "@/components/ui/Card";
 import { Badge } from "@/components/ui/Badge";
 import { Button, ButtonLink } from "@/components/ui/Button";
+import { ConfirmSubmitButton } from "@/components/ui/ConfirmSubmitButton";
 import { QuoteLinesTable } from "@/components/quotes/QuoteLinesTable";
 import { QuoteSendActions } from "@/components/quotes/QuoteSendActions";
 import { createClient } from "@/lib/supabase/server";
-import { QUOTE_STATUS_LABEL, QUOTE_STATUS_TONE } from "@/lib/status";
-import { generateClientQuote, markQuoteSent } from "../actions";
+import { QUOTE_STATUS_LABEL, QUOTE_STATUS_TONE, RESELLER_FILE_TYPE_LABEL, RESELLER_FILE_TYPE_TONE } from "@/lib/status";
+import {
+  markQuoteSent,
+  markQuoteAccepted,
+  markQuoteRefused,
+  markQuoteUnaccepted,
+  uploadQuoteFile,
+  deleteQuoteFile,
+} from "../actions";
+import { QuoteFileUploadForm } from "./QuoteFileUploadForm";
 import type { QuoteStatus } from "@/lib/types/database";
 
 export default async function QuoteDetailPage({
   params,
-  searchParams,
 }: {
   params: Promise<{ id: string }>;
-  searchParams: Promise<{ genError?: string }>;
 }) {
   const { id } = await params;
-  const { genError } = await searchParams;
   const supabase = await createClient();
 
-  const { data: quote } = await supabase
-    .from("quotes")
-    .select("*")
-    .eq("id", id)
-    .eq("type", "to_reseller")
-    .single();
-
+  const { data: quote } = await supabase.from("quotes").select("*").eq("id", id).single();
   if (!quote) notFound();
 
-  const [{ data: lines }, { data: clientQuote }, { data: reseller }] = await Promise.all([
+  const [{ data: lines }, { data: reseller }, { data: files }] = await Promise.all([
     supabase.from("quote_lines").select("*").eq("quote_id", id).order("line_order", { ascending: true }),
-    supabase.from("quotes").select("*").eq("parent_quote_id", id).eq("type", "to_client").maybeSingle(),
     supabase.from("resellers").select("company_name, signature_text").eq("id", quote.reseller_id).single(),
+    supabase.from("reseller_files").select("*").eq("quote_id", id).order("uploaded_at", { ascending: false }),
   ]);
 
   const resellerName = reseller?.company_name ?? "—";
 
-  const clientLines = clientQuote
-    ? (await supabase.from("quote_lines").select("*").eq("quote_id", clientQuote.id).order("line_order", { ascending: true })).data
-    : null;
-
   return (
     <div className="flex flex-col gap-8">
       <PageHeader
-        title={`Devis — ${resellerName}`}
-        description={quote.client_name ? `Client final : ${quote.client_name}` : undefined}
-        actions={<Badge tone={QUOTE_STATUS_TONE[quote.status as QuoteStatus]}>{QUOTE_STATUS_LABEL[quote.status as QuoteStatus]}</Badge>}
+        title={`Devis — ${quote.client_name ?? resellerName}`}
+        description={`Revendeur : ${resellerName}${quote.order_number ? ` · N° commande : ${quote.order_number}` : ""}`}
+        actions={
+          <div className="flex items-center gap-3">
+            <Badge tone={QUOTE_STATUS_TONE[quote.status as QuoteStatus]}>{QUOTE_STATUS_LABEL[quote.status as QuoteStatus]}</Badge>
+            <ButtonLink href={`/admin/quotes/${id}/edit`} variant="secondary" size="sm">
+              Modifier
+            </ButtonLink>
+          </div>
+        }
       />
 
-      {genError && (
-        <p className="rounded-sm border border-danger/30 bg-danger/5 px-4 py-3 text-sm text-danger">{genError}</p>
-      )}
-
       <Card>
-        <CardHeader className="flex items-center justify-between">
-          <p className="font-display text-lg text-ink">Devis revendeur</p>
-          <ButtonLink href={`/api/quotes/${id}/pdf`} variant="secondary" size="sm">
-            Télécharger le PDF
-          </ButtonLink>
+        <CardHeader>
+          <p className="font-display text-lg text-ink">Devis</p>
         </CardHeader>
-        <CardBody>{lines && lines.length > 0 ? <QuoteLinesTable lines={lines} /> : <p className="text-sm text-muted">Aucune ligne.</p>}</CardBody>
+        <CardBody className="flex flex-col gap-4">
+          {lines && lines.length > 0 ? <QuoteLinesTable lines={lines} /> : <p className="text-sm text-muted">Aucune ligne.</p>}
+
+          <QuoteSendActions
+            quoteId={id}
+            clientName={quote.client_name}
+            clientEmail={quote.client_email}
+            resellerCompanyName={resellerName}
+            resellerSignature={reseller?.signature_text}
+            showMarkSent={quote.status === "draft"}
+            markSentAction={markQuoteSent.bind(null, id, `/admin/quotes/${id}`)}
+          />
+
+          {quote.secure_token && (
+            <p className="text-xs text-muted">
+              Lien de consultation client :{" "}
+              <span className="font-mono text-ink">
+                {`${process.env.NEXT_PUBLIC_APP_URL}/devis/${quote.secure_token}`}
+              </span>
+            </p>
+          )}
+
+          {["draft", "sent", "viewed"].includes(quote.status) && (
+            <div className="flex items-center gap-3 border-t border-border pt-4">
+              <p className="text-sm text-muted">
+                Accord de commande obtenu (téléphone, e-mail…) ? Validez directement ici — pas besoin que le client
+                passe par le lien.
+              </p>
+              <form action={markQuoteAccepted.bind(null, id, `/admin/quotes/${id}`)}>
+                <Button type="submit" size="sm">
+                  Marquer comme accepté
+                </Button>
+              </form>
+              <form action={markQuoteRefused.bind(null, id, `/admin/quotes/${id}`)}>
+                <Button type="submit" variant="secondary" size="sm">
+                  Marquer comme refusé
+                </Button>
+              </form>
+            </div>
+          )}
+
+          {quote.status === "accepted" && (
+            <div className="flex items-center gap-3 border-t border-border pt-4">
+              <p className="text-sm text-muted">Accepté par erreur ?</p>
+              <form action={markQuoteUnaccepted.bind(null, id, `/admin/quotes/${id}`)}>
+                <ConfirmSubmitButton confirmMessage="Annuler l'acceptation de ce devis ? La commande créée automatiquement sera supprimée.">
+                  Annuler l&apos;acceptation
+                </ConfirmSubmitButton>
+              </form>
+            </div>
+          )}
+        </CardBody>
       </Card>
 
       <Card>
         <CardHeader>
-          <p className="font-display text-lg text-ink">Devis client final</p>
+          <p className="font-display text-lg text-ink">Pièces jointes ERP</p>
         </CardHeader>
-        <CardBody>
-          {!clientQuote ? (
-            <div className="flex flex-col items-start gap-3">
-              <p className="text-sm text-muted">
-                Aucun devis n&apos;a encore été généré pour le client final. La marge du revendeur sera appliquée
-                automatiquement à chaque ligne.
-              </p>
-              <form action={generateClientQuote.bind(null, id)}>
-                <Button type="submit">Générer le devis client</Button>
-              </form>
-            </div>
-          ) : (
-            <div className="flex flex-col gap-4">
-              <div className="flex items-center gap-3">
-                <Badge tone={QUOTE_STATUS_TONE[clientQuote.status as QuoteStatus]}>
-                  {QUOTE_STATUS_LABEL[clientQuote.status as QuoteStatus]}
-                </Badge>
-                <p className="text-sm text-muted">{clientQuote.client_name}</p>
-              </div>
-              {clientLines && clientLines.length > 0 ? (
-                <QuoteLinesTable lines={clientLines} />
-              ) : (
-                <p className="text-sm text-muted">Aucune ligne.</p>
-              )}
-              <QuoteSendActions
-                quoteId={clientQuote.id}
-                clientName={clientQuote.client_name}
-                clientEmail={clientQuote.client_email}
-                resellerCompanyName={resellerName}
-                resellerSignature={reseller?.signature_text}
-                showMarkSent={clientQuote.status === "draft"}
-                markSentAction={markQuoteSent.bind(null, clientQuote.id, `/admin/quotes/${id}`)}
-              />
-              {clientQuote.secure_token && (
-                <p className="text-xs text-muted">
-                  Lien de consultation client :{" "}
-                  <span className="font-mono text-ink">
-                    {`${process.env.NEXT_PUBLIC_APP_URL}/devis/${clientQuote.secure_token}`}
+        <CardBody className="flex flex-col gap-4">
+          <p className="text-sm text-muted">
+            Le vrai devis/facture fournisseur (émis dans votre ERP) peut être joint ici : visible du revendeur sur ce
+            devis, jamais accessible au client final.
+          </p>
+          <QuoteFileUploadForm action={uploadQuoteFile.bind(null, id, quote.reseller_id)} />
+          {files && files.length > 0 && (
+            <ul className="flex flex-col gap-2">
+              {files.map((file) => (
+                <li key={file.id} className="flex items-center justify-between rounded-sm border border-border px-3 py-2 text-sm">
+                  <span className="flex items-center gap-2">
+                    <span className="text-ink">{file.label ?? "Document"}</span>
+                    <Badge tone={RESELLER_FILE_TYPE_TONE[file.type]}>{RESELLER_FILE_TYPE_LABEL[file.type]}</Badge>
                   </span>
-                </p>
-              )}
-            </div>
+                  <form action={deleteQuoteFile}>
+                    <input type="hidden" name="id" value={file.id} />
+                    <input type="hidden" name="quoteId" value={id} />
+                    <input type="hidden" name="path" value={file.file_url} />
+                    <ConfirmSubmitButton confirmMessage={`Supprimer "${file.label ?? "ce document"}" ?`}>
+                      Supprimer
+                    </ConfirmSubmitButton>
+                  </form>
+                </li>
+              ))}
+            </ul>
           )}
         </CardBody>
       </Card>
