@@ -14,11 +14,14 @@ export function Badge({ tone = "neutral", children }: { tone?: Tone; children: R
   return (
     <span
       className={cn(
-        "inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.5 text-xs font-medium",
+        "inline-flex items-center gap-1.5 rounded-sm px-2.5 py-1 font-mono text-[0.7rem] font-medium uppercase tracking-wide",
         toneClass[tone],
       )}
     >
-      <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-current" />
+      <span
+        className="h-1.5 w-1.5 shrink-0 rounded-full bg-current"
+        style={{ boxShadow: "0 0 5px currentColor" }}
+      />
       {children}
     </span>
   );

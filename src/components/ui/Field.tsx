@@ -2,7 +2,7 @@ import type { InputHTMLAttributes, ReactNode, SelectHTMLAttributes, TextareaHTML
 import { cn } from "@/lib/cn";
 
 const controlClass =
-  "w-full rounded-md border border-border bg-surface px-3 h-10 text-sm text-ink placeholder:text-muted transition-colors hover:border-ink/30 focus:border-accent focus:outline-2 focus:outline-offset-1 focus:outline-accent/40";
+  "w-full rounded-sm border border-border bg-surface px-3 h-10 text-sm text-ink placeholder:text-muted transition-all hover:border-ink/30 focus:border-accent focus:ring-2 focus:ring-accent/20 focus:outline-none";
 
 interface FieldProps {
   label: string;
@@ -16,7 +16,7 @@ interface FieldProps {
 export function Field({ label, htmlFor, hint, error, className, children }: FieldProps) {
   return (
     <div className={cn("flex flex-col gap-1.5", className)}>
-      <label htmlFor={htmlFor} className="text-sm font-medium text-ink">
+      <label htmlFor={htmlFor} className="font-mono text-[0.7rem] font-medium uppercase tracking-wide text-muted">
         {label}
       </label>
       {children}

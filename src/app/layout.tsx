@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Public_Sans, Fraunces } from "next/font/google";
+import { Public_Sans, Fraunces, JetBrains_Mono } from "next/font/google";
 import Script from "next/script";
 import "./globals.css";
 
@@ -12,6 +12,11 @@ const displayFont = Fraunces({
   variable: "--font-display",
   subsets: ["latin"],
   axes: ["opsz"],
+});
+
+const monoFont = JetBrains_Mono({
+  variable: "--font-mono",
+  subsets: ["latin"],
 });
 
 export const metadata: Metadata = {
@@ -28,7 +33,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
     <html
       lang="fr"
-      className={`${bodyFont.variable} ${displayFont.variable} h-full antialiased`}
+      className={`${bodyFont.variable} ${displayFont.variable} ${monoFont.variable} h-full antialiased`}
       suppressHydrationWarning
     >
       <head>

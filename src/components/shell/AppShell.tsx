@@ -37,13 +37,18 @@ export function AppShell({
             href={item.href}
             onClick={() => setOpen(false)}
             className={cn(
-              "flex items-center gap-2.5 rounded-md px-3 py-2 text-sm font-medium transition-all",
+              "relative flex items-center gap-2.5 rounded-sm border-l-2 px-3 py-2 text-sm font-medium transition-all",
               active
-                ? "bg-accent text-accent-foreground shadow-sm"
-                : "text-ink/75 hover:bg-overlay hover:text-ink",
+                ? "border-accent bg-accent/10 text-accent"
+                : "border-transparent text-ink/70 hover:border-border hover:bg-overlay hover:text-ink",
             )}
+            style={active ? { boxShadow: "inset 2px 0 6px -3px var(--accent)" } : undefined}
           >
-            {item.icon && <span className="shrink-0 [&>svg]:h-[18px] [&>svg]:w-[18px]">{item.icon}</span>}
+            {item.icon && (
+              <span className={cn("shrink-0 [&>svg]:h-[18px] [&>svg]:w-[18px]", active ? "text-accent" : "text-muted")}>
+                {item.icon}
+              </span>
+            )}
             {item.label}
           </Link>
         );
@@ -53,12 +58,12 @@ export function AppShell({
 
   const brandMark = (
     <div className="flex items-center gap-2.5">
-      <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md bg-ink text-sm font-display text-paper">
+      <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-sm border border-accent/30 bg-ink font-mono text-sm text-accent">
         {brand.charAt(0).toUpperCase()}
       </span>
       <div>
         <p className="font-display text-lg leading-tight text-ink">{brand}</p>
-        <p className="text-xs text-muted">{subtitle}</p>
+        <p className="font-mono text-[0.65rem] uppercase tracking-wide text-muted">{subtitle}</p>
       </div>
     </div>
   );

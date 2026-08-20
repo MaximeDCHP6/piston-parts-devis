@@ -1,56 +1,59 @@
 @import "tailwindcss";
 
 :root {
-  --paper: #faf8f5;
+  --paper: #f5f5f4;
   --surface: #ffffff;
-  --ink: #1c1a17;
-  --muted: #726c62;
-  --border: #e6e1d8;
-  --accent: #9a5b2e;
-  --accent-foreground: #fffaf5;
-  --success: #2f6b4f;
-  --success-foreground: #f2faf6;
-  --danger: #a33d2f;
-  --danger-foreground: #fdf3f1;
-  --warning: #9a7327;
-  --warning-foreground: #fdf8ec;
-  --overlay: rgba(28, 26, 23, 0.05);
+  --ink: #131417;
+  --muted: #66686f;
+  --border: #e1e1e0;
+  --accent: #b5551c;
+  --accent-foreground: #fff8f2;
+  --success: #206049;
+  --success-foreground: #f0faf5;
+  --danger: #a3311f;
+  --danger-foreground: #fdf2f0;
+  --warning: #8a6414;
+  --warning-foreground: #fdf8ea;
+  --overlay: rgba(19, 20, 23, 0.05);
+  --grid-line: rgba(19, 20, 23, 0.035);
 }
 
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
-    --paper: #17140f;
-    --surface: #201c16;
-    --ink: #f2ede4;
-    --muted: #a39a8c;
-    --border: #37312a;
-    --accent: #cf9861;
-    --accent-foreground: #1c1a17;
-    --success: #6fbd93;
-    --success-foreground: #0d2318;
-    --danger: #e08575;
-    --danger-foreground: #2a0f0a;
-    --warning: #e0b563;
-    --warning-foreground: #2a1f08;
-    --overlay: rgba(242, 237, 228, 0.08);
+    --paper: #0c0d10;
+    --surface: #16171b;
+    --ink: #f2f2f0;
+    --muted: #8d8f97;
+    --border: #26272d;
+    --accent: #ef9550;
+    --accent-foreground: #1a1005;
+    --success: #66c99a;
+    --success-foreground: #08201a;
+    --danger: #ec8371;
+    --danger-foreground: #2a0d08;
+    --warning: #e7bc5f;
+    --warning-foreground: #241a04;
+    --overlay: rgba(242, 242, 240, 0.07);
+    --grid-line: rgba(242, 242, 240, 0.045);
   }
 }
 
 :root[data-theme="dark"] {
-  --paper: #17140f;
-  --surface: #201c16;
-  --ink: #f2ede4;
-  --muted: #a39a8c;
-  --border: #37312a;
-  --accent: #cf9861;
-  --accent-foreground: #1c1a17;
-  --success: #6fbd93;
-  --success-foreground: #0d2318;
-  --danger: #e08575;
-  --danger-foreground: #2a0f0a;
-  --warning: #e0b563;
-  --warning-foreground: #2a1f08;
-  --overlay: rgba(242, 237, 228, 0.08);
+  --paper: #0c0d10;
+  --surface: #16171b;
+  --ink: #f2f2f0;
+  --muted: #8d8f97;
+  --border: #26272d;
+  --accent: #ef9550;
+  --accent-foreground: #1a1005;
+  --success: #66c99a;
+  --success-foreground: #08201a;
+  --danger: #ec8371;
+  --danger-foreground: #2a0d08;
+  --warning: #e7bc5f;
+  --warning-foreground: #241a04;
+  --overlay: rgba(242, 242, 240, 0.07);
+  --grid-line: rgba(242, 242, 240, 0.045);
 }
 
 @theme inline {
@@ -70,10 +73,15 @@
   --color-overlay: var(--overlay);
   --font-sans: var(--font-body);
   --font-display: var(--font-display);
+  --font-mono: var(--font-mono);
 }
 
 body {
-  background: var(--paper);
+  background:
+    linear-gradient(var(--grid-line) 1px, transparent 1px) 0 0 / 100% 40px,
+    linear-gradient(90deg, var(--grid-line) 1px, transparent 1px) 0 0 / 40px 100%,
+    var(--paper);
+  background-attachment: fixed;
   color: var(--ink);
 }
 
@@ -86,6 +94,11 @@ html {
 }
 
 /* Léger relief moderne sur les tableaux de données, sans toucher à chaque page. */
+table thead th {
+  font-family: var(--font-mono);
+  font-weight: 500;
+  letter-spacing: 0.08em;
+}
 table tbody tr {
   transition: background-color 120ms ease;
 }
