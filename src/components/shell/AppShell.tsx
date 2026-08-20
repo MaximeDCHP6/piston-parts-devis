@@ -11,6 +11,7 @@ export interface NavItem {
   href: string;
   label: string;
   icon?: ReactNode;
+  badge?: number;
 }
 
 export function AppShell({
@@ -61,7 +62,12 @@ export function AppShell({
                 {item.icon}
               </span>
             )}
-            {item.label}
+            <span className="flex-1">{item.label}</span>
+            {!!item.badge && (
+              <span className="rounded-full bg-accent px-1.5 py-0.5 font-mono text-[0.65rem] font-medium text-accent-foreground">
+                {item.badge}
+              </span>
+            )}
           </Link>
         );
       })}
