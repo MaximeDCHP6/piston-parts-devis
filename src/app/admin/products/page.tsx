@@ -12,9 +12,9 @@ const PAGE_SIZE = 50;
 export default async function ProductsPage({
   searchParams,
 }: {
-  searchParams: Promise<{ q?: string; category?: string; page?: string }>;
+  searchParams: Promise<{ q?: string; category?: string; page?: string; noPrice?: string }>;
 }) {
-  const { q, category, page: pageParam } = await searchParams;
+  const { q, category, page: pageParam, noPrice } = await searchParams;
   const page = Math.max(1, Number(pageParam) || 1);
   const from = (page - 1) * PAGE_SIZE;
   const supabase = await createClient();
@@ -29,10 +29,12 @@ export default async function ProductsPage({
   const safeQ = q?.replace(/[,()]/g, "").trim();
   if (safeQ) query = query.or(`name.ilike.%${safeQ}%,sku.ilike.%${safeQ}%`);
   if (category) query = query.eq("category", category);
+  if (noPrice) query = query.or("purchase_price.is.null,purchase_price.eq.0");
 
-  const [{ data: products, count }, { data: categoryRows }] = await Promise.all([
+  const [{ data: products, count }, { data: categoryRows }, { count: noPriceCount }] = await Promise.all([
     query,
     supabase.from("products").select("category").not("category", "is", null),
+    supabase.from("products").select("*", { count: "exact", head: true }).or("purchase_price.is.null,purchase_price.eq.0"),
   ]);
 
   const total = count ?? 0;
@@ -43,10 +45,22 @@ export default async function ProductsPage({
     const params = new URLSearchParams();
     if (q) params.set("q", q);
     if (category) params.set("category", category);
+    if (noPrice) params.set("noPrice", "1");
     if (target > 1) params.set("page", String(target));
     const qs = params.toString();
     return qs ? `/admin/products?${qs}` : "/admin/products";
   }
+
+  const exportParams = new URLSearchParams();
+  if (q) exportParams.set("q", q);
+  if (category) exportParams.set("category", category);
+  const exportQs = exportParams.toString();
+
+  const toggleNoPriceParams = new URLSearchParams();
+  if (q) toggleNoPriceParams.set("q", q);
+  if (category) toggleNoPriceParams.set("category", category);
+  if (!noPrice) toggleNoPriceParams.set("noPrice", "1");
+  const toggleNoPriceQs = toggleNoPriceParams.toString();
 
   return (
     <div className="flex flex-col gap-6">
@@ -55,6 +69,9 @@ export default async function ProductsPage({
         description={`${total.toLocaleString("fr-FR")} produit${total > 1 ? "s" : ""} au total — page ${page}/${totalPages}.`}
         actions={
           <div className="flex items-center gap-2">
+            <ButtonLink href={`/api/products/export${exportQs ? `?${exportQs}` : ""}`} variant="secondary">
+              Exporter CSV
+            </ButtonLink>
             <ButtonLink href="/admin/products/import" variant="secondary">
               Importer CSV
             </ButtonLink>
@@ -63,16 +80,26 @@ export default async function ProductsPage({
         }
       />
 
-      <QuickFilters
-        searchPlaceholder="Rechercher un produit…"
-        selectFilters={[
-          {
-            key: "category",
-            label: "Toutes catégories",
-            options: categories.map((c) => ({ value: c, label: c })),
-          },
-        ]}
-      />
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <QuickFilters
+          searchPlaceholder="Rechercher un produit…"
+          selectFilters={[
+            {
+              key: "category",
+              label: "Toutes catégories",
+              options: categories.map((c) => ({ value: c, label: c })),
+            },
+          ]}
+        />
+        {(noPriceCount ?? 0) > 0 && (
+          <Link
+            href={`/admin/products${toggleNoPriceQs ? `?${toggleNoPriceQs}` : ""}`}
+            className={noPrice ? "text-sm font-medium text-accent underline" : "text-sm text-muted hover:text-accent"}
+          >
+            {noPrice ? "✕ Sans prix" : `Sans prix (${noPriceCount})`}
+          </Link>
+        )}
+      </div>
 
       {!products || products.length === 0 ? (
         <EmptyState
