@@ -27,10 +27,18 @@ export function AppShell({
   const pathname = usePathname();
   const [open, setOpen] = useState(false);
 
+  // "/admin" est un préfixe de toutes les autres routes admin (/admin/quotes,
+  // etc.) : un simple `startsWith` marquerait le tableau de bord actif sur
+  // TOUTES les pages en plus de la vraie page courante. On ne retient donc
+  // que l'item dont le href est le plus long parmi ceux qui correspondent.
+  const activeHref = navItems
+    .filter((item) => pathname === item.href || pathname.startsWith(`${item.href}/`))
+    .sort((a, b) => b.href.length - a.href.length)[0]?.href;
+
   const nav = (
     <nav className="flex flex-1 flex-col gap-1">
       {navItems.map((item) => {
-        const active = pathname === item.href || pathname.startsWith(`${item.href}/`);
+        const active = item.href === activeHref;
         return (
           <Link
             key={item.href}
