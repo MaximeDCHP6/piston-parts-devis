@@ -4,6 +4,7 @@ import { createClient } from "@/lib/supabase/server";
 import { AppShell } from "@/components/shell/AppShell";
 import { SignOutButton } from "@/components/shell/SignOutButton";
 import { IconGrid, IconFileText, IconCart, IconFolder, IconSettings } from "@/components/icons";
+import { resellerGlobalSearch } from "./search-actions";
 
 const NAV_ITEMS = [
   { href: "/espace", label: "Tableau de bord", icon: <IconGrid /> },
@@ -32,6 +33,7 @@ export default async function EspaceLayout({ children }: { children: React.React
       subtitle="Espace revendeur · Piston"
       navItems={NAV_ITEMS}
       footer={<SignOutButton label={user.email ?? ""} />}
+      searchAction={resellerGlobalSearch}
     >
       {children}
     </AppShell>

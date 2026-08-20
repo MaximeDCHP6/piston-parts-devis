@@ -4,6 +4,8 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState, type ReactNode } from "react";
 import { cn } from "@/lib/cn";
+import { GlobalSearch } from "./GlobalSearch";
+import type { SearchResultItem } from "@/lib/types/search";
 
 export interface NavItem {
   href: string;
@@ -17,12 +19,14 @@ export function AppShell({
   navItems,
   footer,
   children,
+  searchAction,
 }: {
   brand: string;
   subtitle: string;
   navItems: NavItem[];
   footer?: ReactNode;
   children: ReactNode;
+  searchAction?: (query: string) => Promise<SearchResultItem[]>;
 }) {
   const pathname = usePathname();
   const [open, setOpen] = useState(false);
@@ -98,6 +102,11 @@ export function AppShell({
           )}
         >
           <div className="mb-8 hidden sm:block">{brandMark}</div>
+          {searchAction && (
+            <div className="mb-4">
+              <GlobalSearch action={searchAction} />
+            </div>
+          )}
           {nav}
           {footer && <div className="mt-auto border-t border-border pt-4">{footer}</div>}
         </aside>

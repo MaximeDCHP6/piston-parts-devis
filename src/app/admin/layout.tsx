@@ -3,6 +3,7 @@ import { getCurrentUser } from "@/lib/auth";
 import { AppShell } from "@/components/shell/AppShell";
 import { SignOutButton } from "@/components/shell/SignOutButton";
 import { IconGrid, IconFileText, IconCart, IconUsers, IconPackage, IconUserCog, IconHistory } from "@/components/icons";
+import { adminGlobalSearch } from "./search-actions";
 
 const NAV_ITEMS = [
   { href: "/admin", label: "Tableau de bord", icon: <IconGrid /> },
@@ -26,6 +27,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
       subtitle="Gravelin Parts · Admin"
       navItems={NAV_ITEMS}
       footer={<SignOutButton label={user.email ?? ""} />}
+      searchAction={adminGlobalSearch}
     >
       {children}
     </AppShell>
