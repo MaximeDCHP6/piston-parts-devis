@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { PageHeader } from "@/components/ui/PageHeader";
+import { ButtonLink } from "@/components/ui/Button";
 import { QuickFilters } from "@/components/ui/QuickFilters";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { Badge } from "@/components/ui/Badge";
@@ -62,9 +63,22 @@ export default async function EspaceOrdersPage({
   ]);
   const clientNameByQuoteId = new Map((quotes ?? []).map((quoteRow) => [quoteRow.id, quoteRow.client_name]));
 
+  const exportParams = new URLSearchParams();
+  if (q) exportParams.set("q", q);
+  if (status) exportParams.set("status", status);
+  if (client) exportParams.set("client", client);
+  const exportQs = exportParams.toString();
+
   return (
     <div className="flex flex-col gap-6">
-      <PageHeader title="Commandes" />
+      <PageHeader
+        title="Commandes"
+        actions={
+          <ButtonLink href={`/api/espace/orders/export${exportQs ? `?${exportQs}` : ""}`} variant="secondary">
+            Exporter CSV
+          </ButtonLink>
+        }
+      />
 
       <QuickFilters
         searchPlaceholder="Rechercher un client…"

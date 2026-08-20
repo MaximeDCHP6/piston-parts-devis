@@ -221,7 +221,11 @@ export function QuoteLinesEditor({
                     step="0.01"
                     value={line.unit_price}
                     onChange={(e) => updateLine(line.key, { unit_price: Number(e.target.value) })}
+                    className={line.unit_price < line.cost_price ? "border-danger text-danger" : undefined}
                   />
+                  {line.unit_price < line.cost_price && (
+                    <p className="mt-1 text-xs text-danger">Sous le coût</p>
+                  )}
                 </td>
                 <td className="px-3 py-2">
                   <Input

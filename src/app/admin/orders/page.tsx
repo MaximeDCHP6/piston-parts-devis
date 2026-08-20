@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { PageHeader } from "@/components/ui/PageHeader";
+import { ButtonLink } from "@/components/ui/Button";
 import { QuickFilters } from "@/components/ui/QuickFilters";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { createClient } from "@/lib/supabase/server";
@@ -46,9 +47,22 @@ export default async function AdminOrdersPage({
       : { data: [] as { id: string; client_name: string | null; parent_quote_id: string | null }[] };
   const quoteById = new Map((quotes ?? []).map((quoteRow) => [quoteRow.id, quoteRow]));
 
+  const exportParams = new URLSearchParams();
+  if (q) exportParams.set("q", q);
+  if (status) exportParams.set("status", status);
+  if (reseller) exportParams.set("reseller", reseller);
+  const exportQs = exportParams.toString();
+
   return (
     <div className="flex flex-col gap-6">
-      <PageHeader title="Commandes" />
+      <PageHeader
+        title="Commandes"
+        actions={
+          <ButtonLink href={`/api/orders/export${exportQs ? `?${exportQs}` : ""}`} variant="secondary">
+            Exporter CSV
+          </ButtonLink>
+        }
+      />
 
       <QuickFilters
         searchPlaceholder="Rechercher un client…"

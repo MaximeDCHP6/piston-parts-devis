@@ -7,6 +7,7 @@ import { createClient } from "@/lib/supabase/server";
 import { ResellerForm } from "../ResellerForm";
 import { updateReseller, createResellerLogin, resetResellerPassword, deleteReseller } from "../actions";
 import { ResellerLoginPanel } from "./ResellerLoginPanel";
+import { quoteTotals, formatEUR } from "@/lib/quote-calc";
 
 export default async function EditResellerPage({
   params,
@@ -19,12 +20,29 @@ export default async function EditResellerPage({
 
   if (!reseller) notFound();
 
+  const { data: quotes } = await supabase.from("quotes").select("id, status").eq("reseller_id", id).eq("type", "to_client");
+  const acceptedIds = (quotes ?? []).filter((q) => q.status === "accepted").map((q) => q.id);
+  const { data: acceptedLines } =
+    acceptedIds.length > 0
+      ? await supabase.from("quote_lines").select("quantity, unit_price, discount_percent, vat_rate").in("quote_id", acceptedIds)
+      : { data: [] };
+  const totalHT = quoteTotals(acceptedLines ?? []).totalHT;
+
+  const stats = [
+    { label: "Devis créés", value: (quotes ?? []).length },
+    { label: "Devis acceptés", value: acceptedIds.length },
+    { label: "CA accepté (HT)", value: formatEUR(totalHT) },
+  ];
+
   return (
     <div className="flex flex-col gap-8">
       <PageHeader
         title={reseller.company_name}
         actions={
           <div className="flex items-center gap-2">
+            <ButtonLink href={`/admin/quotes?reseller=${id}`} variant="secondary">
+              Devis
+            </ButtonLink>
             <ButtonLink href={`/admin/resellers/${id}/clients`} variant="secondary">
               Clients
             </ButtonLink>
@@ -34,6 +52,15 @@ export default async function EditResellerPage({
           </div>
         }
       />
+
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+        {stats.map((stat) => (
+          <div key={stat.label} className="rounded-md border border-border bg-surface px-4 py-3">
+            <p className="text-sm text-muted">{stat.label}</p>
+            <p className="mt-1 font-display text-2xl text-ink">{stat.value}</p>
+          </div>
+        ))}
+      </div>
 
       <div className="grid grid-cols-1 gap-8 lg:grid-cols-[2fr_1fr]">
         <ResellerForm action={updateReseller.bind(null, id)} reseller={reseller} />
