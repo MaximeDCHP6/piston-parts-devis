@@ -47,14 +47,18 @@ function emptyLine(): EditableLine {
 }
 
 export function QuoteLinesEditor({
-  products,
+  initialProducts = [],
   marginPercent,
   resellerId,
   priceHistory = {},
   initialLines,
   allowDraftRestore = false,
 }: {
-  products: Product[];
+  // Uniquement les produits déjà sélectionnés sur les lignes existantes
+  // (mode édition), pour afficher leur référence/nom au chargement — la
+  // recherche elle-même se fait côté serveur (voir ProductCombobox), le
+  // catalogue complet n'est jamais chargé côté client.
+  initialProducts?: Product[];
   marginPercent: number;
   resellerId: string;
   priceHistory?: Record<string, PriceHistoryEntry>;
@@ -96,7 +100,7 @@ export function QuoteLinesEditor({
   }, [allowDraftRestore, lines]);
 
   const totals = useMemo(() => quoteTotals(lines), [lines]);
-  const productById = useMemo(() => new Map(products.map((p) => [p.id, p])), [products]);
+  const productById = useMemo(() => new Map(initialProducts.map((p) => [p.id, p])), [initialProducts]);
 
   function updateLine(key: string, patch: Partial<EditableLine>) {
     setLines((prev) => prev.map((line) => (line.key === key ? { ...line, ...patch } : line)));
@@ -180,7 +184,6 @@ export function QuoteLinesEditor({
               <tr key={line.key} className="border-b border-border last:border-0 align-top">
                 <td className="px-3 py-2">
                   <ProductCombobox
-                    products={products}
                     selectedProduct={line.product_id ? productById.get(line.product_id) ?? null : null}
                     onPick={(product) => onProductPick(line.key, product)}
                   />

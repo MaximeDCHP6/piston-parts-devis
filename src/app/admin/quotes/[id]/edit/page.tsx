@@ -5,6 +5,7 @@ import { QuoteForm } from "../../QuoteForm";
 import { updateQuote } from "../../actions";
 import { buildPriceHistory } from "../../priceHistory";
 import type { EditableLine } from "../../QuoteLinesEditor";
+import type { Product } from "@/lib/types/database";
 
 export default async function EditQuotePage({
   params,
@@ -17,14 +18,21 @@ export default async function EditQuotePage({
   const { data: quote } = await supabase.from("quotes").select("*").eq("id", id).single();
   if (!quote) notFound();
 
-  const [{ data: lines }, { data: resellers }, { data: products }, { data: clientContacts }, priceHistory] =
-    await Promise.all([
-      supabase.from("quote_lines").select("*").eq("quote_id", id).order("line_order", { ascending: true }),
-      supabase.from("resellers").select("*").order("company_name", { ascending: true }),
-      supabase.from("products").select("*").order("name", { ascending: true }),
-      supabase.from("client_contacts").select("*").order("name", { ascending: true }),
-      buildPriceHistory(supabase),
-    ]);
+  const [{ data: lines }, { data: resellers }, { data: clientContacts }, priceHistory] = await Promise.all([
+    supabase.from("quote_lines").select("*").eq("quote_id", id).order("line_order", { ascending: true }),
+    supabase.from("resellers").select("*").order("company_name", { ascending: true }),
+    supabase.from("client_contacts").select("*").order("name", { ascending: true }),
+    buildPriceHistory(supabase),
+  ]);
+
+  // Uniquement les produits déjà référencés sur ce devis (catalogue trop
+  // volumineux pour être chargé en entier — la recherche se fait côté
+  // serveur dans ProductCombobox, ceci ne sert qu'à afficher l'existant).
+  const usedProductIds = Array.from(new Set((lines ?? []).map((l) => l.product_id).filter((v): v is string => !!v)));
+  const { data: products } =
+    usedProductIds.length > 0
+      ? await supabase.from("products").select("*").in("id", usedProductIds)
+      : { data: [] as Product[] };
 
   const lineIds = (lines ?? []).map((l) => l.id);
   const { data: costs } =
@@ -50,7 +58,7 @@ export default async function EditQuotePage({
       <QuoteForm
         action={updateQuote.bind(null, id)}
         resellers={resellers ?? []}
-        products={products ?? []}
+        initialProducts={products ?? []}
         clientContacts={clientContacts ?? []}
         priceHistory={priceHistory}
         initialQuote={quote}

@@ -6,7 +6,7 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { isResellerFileType } from "@/lib/status";
-import type { QuoteStatus } from "@/lib/types/database";
+import type { QuoteStatus, Product } from "@/lib/types/database";
 
 const LineSchema = z.object({
   product_id: z.string().uuid().nullable().optional(),
@@ -248,6 +248,27 @@ export async function updateQuote(
 
   revalidatePath(`/admin/quotes/${quoteId}`);
   redirect(`/admin/quotes/${quoteId}`);
+}
+
+// Recherche serveur (référence ou nom) utilisée par le champ produit du
+// formulaire de devis. Le catalogue compte plusieurs milliers d'articles :
+// le charger entièrement côté client puis filtrer en JS ne passait pas à
+// l'échelle (payload énorme, et surtout la réponse Postgrest est plafonnée
+// à 1000 lignes par défaut, donc la plupart des références restaient
+// introuvables). On recherche donc à chaque frappe, côté serveur.
+export async function searchProducts(query: string) {
+  const q = query.trim();
+  if (q.length < 2) return [];
+
+  const supabase = await createClient();
+  const [{ data: bySku }, { data: byName }] = await Promise.all([
+    supabase.from("products").select("*").ilike("sku", `%${q}%`).limit(10),
+    supabase.from("products").select("*").ilike("name", `%${q}%`).limit(10),
+  ]);
+
+  const merged = new Map<string, Product>();
+  for (const p of [...(bySku ?? []), ...(byName ?? [])]) merged.set(p.id, p);
+  return Array.from(merged.values()).slice(0, 15);
 }
 
 export async function deleteQuote(formData: FormData) {

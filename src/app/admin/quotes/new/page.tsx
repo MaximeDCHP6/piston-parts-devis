@@ -6,9 +6,8 @@ import { buildPriceHistory } from "../priceHistory";
 
 export default async function NewQuotePage() {
   const supabase = await createClient();
-  const [{ data: resellers }, { data: products }, { data: clientContacts }, priceHistory] = await Promise.all([
+  const [{ data: resellers }, { data: clientContacts }, priceHistory] = await Promise.all([
     supabase.from("resellers").select("*").order("company_name", { ascending: true }),
-    supabase.from("products").select("*").order("name", { ascending: true }),
     supabase.from("client_contacts").select("*").order("name", { ascending: true }),
     buildPriceHistory(supabase),
   ]);
@@ -19,7 +18,6 @@ export default async function NewQuotePage() {
       <QuoteForm
         action={createQuote}
         resellers={resellers ?? []}
-        products={products ?? []}
         clientContacts={clientContacts ?? []}
         priceHistory={priceHistory}
       />

@@ -7,30 +7,52 @@ import { createClient } from "@/lib/supabase/server";
 import { deleteProduct } from "./actions";
 import Link from "next/link";
 
+const PAGE_SIZE = 50;
+
 export default async function ProductsPage({
   searchParams,
 }: {
-  searchParams: Promise<{ q?: string; category?: string }>;
+  searchParams: Promise<{ q?: string; category?: string; page?: string }>;
 }) {
-  const { q, category } = await searchParams;
+  const { q, category, page: pageParam } = await searchParams;
+  const page = Math.max(1, Number(pageParam) || 1);
+  const from = (page - 1) * PAGE_SIZE;
   const supabase = await createClient();
 
-  let query = supabase.from("products").select("*").order("name", { ascending: true });
-  if (q) query = query.ilike("name", `%${q}%`);
+  let query = supabase
+    .from("products")
+    .select("*", { count: "exact" })
+    .order("name", { ascending: true })
+    .range(from, from + PAGE_SIZE - 1);
+  // .or() a une syntaxe de filtre propre à Postgrest : on retire les
+  // caractères qui la casseraient si l'admin les tape dans la recherche.
+  const safeQ = q?.replace(/[,()]/g, "").trim();
+  if (safeQ) query = query.or(`name.ilike.%${safeQ}%,sku.ilike.%${safeQ}%`);
   if (category) query = query.eq("category", category);
 
-  const [{ data: products }, { data: categoryRows }] = await Promise.all([
+  const [{ data: products, count }, { data: categoryRows }] = await Promise.all([
     query,
     supabase.from("products").select("category").not("category", "is", null),
   ]);
 
+  const total = count ?? 0;
+  const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
   const categories = Array.from(new Set((categoryRows ?? []).map((r) => r.category).filter(Boolean))) as string[];
+
+  function pageHref(target: number) {
+    const params = new URLSearchParams();
+    if (q) params.set("q", q);
+    if (category) params.set("category", category);
+    if (target > 1) params.set("page", String(target));
+    const qs = params.toString();
+    return qs ? `/admin/products?${qs}` : "/admin/products";
+  }
 
   return (
     <div className="flex flex-col gap-6">
       <PageHeader
         title="Catalogue produits"
-        description="Produits réutilisables dans la création de devis."
+        description={`${total.toLocaleString("fr-FR")} produit${total > 1 ? "s" : ""} au total — page ${page}/${totalPages}.`}
         actions={
           <div className="flex items-center gap-2">
             <ButtonLink href="/admin/products/import" variant="secondary">
@@ -100,6 +122,30 @@ export default async function ProductsPage({
               ))}
             </tbody>
           </table>
+        </div>
+      )}
+
+      {totalPages > 1 && (
+        <div className="flex items-center justify-between text-sm">
+          <ButtonLink
+            href={pageHref(page - 1)}
+            variant="secondary"
+            size="sm"
+            className={page <= 1 ? "pointer-events-none opacity-40" : undefined}
+          >
+            Précédent
+          </ButtonLink>
+          <p className="font-mono text-xs text-muted">
+            Page {page} / {totalPages}
+          </p>
+          <ButtonLink
+            href={pageHref(page + 1)}
+            variant="secondary"
+            size="sm"
+            className={page >= totalPages ? "pointer-events-none opacity-40" : undefined}
+          >
+            Suivant
+          </ButtonLink>
         </div>
       )}
     </div>

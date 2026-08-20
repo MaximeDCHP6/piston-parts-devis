@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { Input } from "@/components/ui/Field";
+import { searchProducts } from "./actions";
 import type { Product } from "@/lib/types/database";
 
 function label(p: Product) {
@@ -10,23 +11,49 @@ function label(p: Product) {
 }
 
 export function ProductCombobox({
-  products,
   selectedProduct,
   onPick,
 }: {
-  products: Product[];
   selectedProduct: Product | null;
   onPick: (product: Product | null) => void;
 }) {
   const [query, setQuery] = useState(selectedProduct ? label(selectedProduct) : "");
   const [open, setOpen] = useState(false);
+  const [matches, setMatches] = useState<Product[]>([]);
+  const [loading, setLoading] = useState(false);
   const [rect, setRect] = useState<{ top: number; left: number; width: number } | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
 
-  // Pas d'effet de synchronisation nécessaire ici : `query` ne change que
-  // via l'état initial (produit déjà sélectionné en mode édition) ou via
-  // les gestionnaires ci-dessous (choix d'une suggestion, saisie) — jamais
-  // suite à un changement externe de `selectedProduct`.
+  // Recherche côté serveur (catalogue de plusieurs milliers de références,
+  // impossible à charger entièrement côté client). Débounce simple : une
+  // requête 250ms après la dernière frappe, la précédente est abandonnée.
+  // setState synchrone justifié : on synchronise avec une recherche serveur
+  // externe (indicateur de chargement + résultats), pas un dérivé de props/state.
+  useEffect(() => {
+    const q = query.trim();
+    if (q.length < 2) {
+      /* eslint-disable react-hooks/set-state-in-effect */
+      setMatches([]);
+      setLoading(false);
+      /* eslint-enable react-hooks/set-state-in-effect */
+      return;
+    }
+    let cancelled = false;
+    setLoading(true);
+    const timer = setTimeout(() => {
+      searchProducts(q).then((results) => {
+        if (!cancelled) {
+          setMatches(results);
+          setLoading(false);
+        }
+      });
+    }, 250);
+    return () => {
+      cancelled = true;
+      clearTimeout(timer);
+    };
+  }, [query]);
+
   useEffect(() => {
     function onClickOutside(e: MouseEvent) {
       const target = e.target as Node;
@@ -46,13 +73,6 @@ export function ProductCombobox({
     }
     setOpen(true);
   }
-
-  const q = query.trim().toLowerCase();
-  const matches = q
-    ? products
-        .filter((p) => p.sku?.toLowerCase().includes(q) || p.name.toLowerCase().includes(q))
-        .slice(0, 8)
-    : [];
 
   return (
     <div ref={containerRef} className="relative">
@@ -77,7 +97,9 @@ export function ProductCombobox({
             style={{ position: "fixed", top: rect.top, left: rect.left, width: rect.width, zIndex: 50 }}
             className="max-h-56 overflow-auto rounded-sm border border-border bg-surface shadow-lg"
           >
-            {matches.length > 0 ? (
+            {loading ? (
+              <li className="px-3 py-2 text-sm text-muted">Recherche…</li>
+            ) : matches.length > 0 ? (
               matches.map((p) => (
                 <li key={p.id}>
                   <button
@@ -99,7 +121,7 @@ export function ProductCombobox({
               ))
             ) : (
               <li className="px-3 py-2 text-sm text-muted">
-                {q ? "Aucune référence ne correspond." : "Tapez une référence ou un nom de produit…"}
+                {query.trim().length < 2 ? "Tapez au moins 2 caractères…" : "Aucune référence ne correspond."}
               </li>
             )}
           </ul>,

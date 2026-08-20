@@ -30,7 +30,7 @@ function toDateInputValue(value?: string | null) {
 export function QuoteForm({
   action,
   resellers,
-  products,
+  initialProducts,
   clientContacts,
   priceHistory,
   initialQuote,
@@ -38,7 +38,7 @@ export function QuoteForm({
 }: {
   action: (prevState: QuoteFormState, formData: FormData) => Promise<QuoteFormState>;
   resellers: Reseller[];
-  products: Product[];
+  initialProducts?: Product[];
   clientContacts: ClientContact[];
   priceHistory?: Record<string, PriceHistoryEntry>;
   initialQuote?: Quote;
@@ -252,7 +252,7 @@ export function QuoteForm({
 
       <QuoteLinesEditor
         key={linesResetKey}
-        products={products}
+        initialProducts={initialProducts}
         marginPercent={marginPercent}
         resellerId={resellerId}
         priceHistory={priceHistory}

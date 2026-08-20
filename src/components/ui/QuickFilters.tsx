@@ -43,6 +43,9 @@ export function QuickFilters({
     const params = new URLSearchParams(searchParams.toString());
     if (value) params.set(key, value);
     else params.delete(key);
+    // Un changement de filtre invalide la pagination en cours (la page 5
+    // d'une recherche précédente n'a aucun sens pour la nouvelle requête).
+    params.delete("page");
     router.replace(`${pathname}?${params.toString()}`, { scroll: false });
   }
 
