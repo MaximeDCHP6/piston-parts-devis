@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { PageHeader } from "@/components/ui/PageHeader";
+import { ButtonLink } from "@/components/ui/Button";
 import { QuickFilters } from "@/components/ui/QuickFilters";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { Badge } from "@/components/ui/Badge";
@@ -38,9 +39,24 @@ export default async function EspaceDevisPage({
     supabase.from("client_contacts").select("name").eq("reseller_id", resellerId ?? "").order("name", { ascending: true }),
   ]);
 
+  const exportParams = new URLSearchParams();
+  if (q) exportParams.set("q", q);
+  if (status) exportParams.set("status", status);
+  if (client) exportParams.set("client", client);
+  if (from) exportParams.set("from", from);
+  if (to) exportParams.set("to", to);
+  const exportQs = exportParams.toString();
+
   return (
     <div className="flex flex-col gap-6">
-      <PageHeader title="Devis" />
+      <PageHeader
+        title="Devis"
+        actions={
+          <ButtonLink href={`/api/espace/quotes/export${exportQs ? `?${exportQs}` : ""}`} variant="secondary">
+            Exporter CSV
+          </ButtonLink>
+        }
+      />
 
       <QuickFilters
         searchPlaceholder="Client ou n° de commande…"
