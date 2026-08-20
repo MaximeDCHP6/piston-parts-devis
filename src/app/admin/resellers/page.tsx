@@ -20,11 +20,7 @@ export default async function ResellersPage({
 
   return (
     <div className="flex flex-col gap-6">
-      <PageHeader
-        title="Revendeurs"
-        description="Sociétés partenaires et leur configuration de marque blanche."
-        actions={<ButtonLink href="/admin/resellers/new">Nouveau revendeur</ButtonLink>}
-      />
+      <PageHeader title="Revendeurs" actions={<ButtonLink href="/admin/resellers/new">Nouveau revendeur</ButtonLink>} />
 
       <QuickFilters searchPlaceholder="Rechercher un revendeur…" />
 

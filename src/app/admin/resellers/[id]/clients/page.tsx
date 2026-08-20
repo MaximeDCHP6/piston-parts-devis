@@ -26,10 +26,7 @@ export default async function ResellerClientsPage({
 
   return (
     <div className="flex flex-col gap-6">
-      <PageHeader
-        title={`Clients — ${reseller.company_name}`}
-        description="Carnet d'adresses réutilisable à la création d'un devis pour ce revendeur."
-      />
+      <PageHeader title={`Clients — ${reseller.company_name}`} />
 
       <Card>
         <CardBody>

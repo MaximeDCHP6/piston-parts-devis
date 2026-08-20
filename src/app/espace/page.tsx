@@ -43,7 +43,7 @@ export default async function EspaceDashboardPage() {
 
   return (
     <div className="flex flex-col gap-8">
-      <PageHeader title="Tableau de bord" description="Vue d'ensemble de vos devis et commandes." />
+      <PageHeader title="Tableau de bord" />
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
         {stats.map((stat) => (
           <Card key={stat.label}>

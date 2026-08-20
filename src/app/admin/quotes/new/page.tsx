@@ -14,7 +14,7 @@ export default async function NewQuotePage() {
 
   return (
     <div className="flex flex-col gap-6">
-      <PageHeader title="Nouveau devis" description="Devis établi pour le client final d'un revendeur." />
+      <PageHeader title="Nouveau devis" />
       <QuoteForm
         action={createQuote}
         resellers={resellers ?? []}

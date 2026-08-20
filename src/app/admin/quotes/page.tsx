@@ -41,11 +41,7 @@ export default async function QuotesPage({
 
   return (
     <div className="flex flex-col gap-6">
-      <PageHeader
-        title="Devis"
-        description="Devis établis pour les clients finaux de vos revendeurs."
-        actions={<ButtonLink href="/admin/quotes/new">Nouveau devis</ButtonLink>}
-      />
+      <PageHeader title="Devis" actions={<ButtonLink href="/admin/quotes/new">Nouveau devis</ButtonLink>} />
 
       <QuickFilters
         searchPlaceholder="Client final ou n° de commande…"

@@ -28,7 +28,7 @@ export default async function ResellerFilesPage({
 
   return (
     <div className="flex flex-col gap-6">
-      <PageHeader title={`Documents — ${reseller.company_name}`} description="Factures et documents à mettre à disposition du revendeur." />
+      <PageHeader title={`Documents — ${reseller.company_name}`} />
 
       <Card>
         <CardBody>

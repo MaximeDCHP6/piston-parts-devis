@@ -27,7 +27,7 @@ export default async function AdministratorsPage() {
 
   return (
     <div className="flex flex-col gap-6">
-      <PageHeader title="Administrateurs" description="Comptes ayant un accès complet à l'espace admin." />
+      <PageHeader title="Administrateurs" />
 
       <Card>
         <CardHeader>

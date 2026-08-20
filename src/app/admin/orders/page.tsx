@@ -48,7 +48,7 @@ export default async function AdminOrdersPage({
 
   return (
     <div className="flex flex-col gap-6">
-      <PageHeader title="Commandes" description="Commandes issues des devis acceptés par les clients finaux." />
+      <PageHeader title="Commandes" />
 
       <QuickFilters
         searchPlaceholder="Rechercher un client…"

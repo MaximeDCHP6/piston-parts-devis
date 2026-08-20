@@ -40,7 +40,7 @@ export default async function EspaceDevisPage({
 
   return (
     <div className="flex flex-col gap-6">
-      <PageHeader title="Devis" description="Devis adressés à vos clients." />
+      <PageHeader title="Devis" />
 
       <QuickFilters
         searchPlaceholder="Client ou n° de commande…"

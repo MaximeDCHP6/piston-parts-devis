@@ -64,7 +64,7 @@ export default async function EspaceOrdersPage({
 
   return (
     <div className="flex flex-col gap-6">
-      <PageHeader title="Commandes" description="Commandes issues des devis acceptés par vos clients." />
+      <PageHeader title="Commandes" />
 
       <QuickFilters
         searchPlaceholder="Rechercher un client…"

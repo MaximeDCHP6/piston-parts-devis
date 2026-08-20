@@ -6,7 +6,7 @@ import { PasswordForm } from "./PasswordForm";
 export default function EspaceParametresPage() {
   return (
     <div className="flex flex-col gap-6">
-      <PageHeader title="Paramètres" description="Préférences de votre espace revendeur." />
+      <PageHeader title="Paramètres" />
 
       <Card>
         <CardHeader>
