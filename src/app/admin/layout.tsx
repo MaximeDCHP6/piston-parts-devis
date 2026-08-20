@@ -2,7 +2,7 @@ import { redirect } from "next/navigation";
 import { getCurrentUser } from "@/lib/auth";
 import { AppShell } from "@/components/shell/AppShell";
 import { SignOutButton } from "@/components/shell/SignOutButton";
-import { IconGrid, IconFileText, IconCart, IconUsers, IconPackage, IconUserCog } from "@/components/icons";
+import { IconGrid, IconFileText, IconCart, IconUsers, IconPackage, IconUserCog, IconHistory } from "@/components/icons";
 
 const NAV_ITEMS = [
   { href: "/admin", label: "Tableau de bord", icon: <IconGrid /> },
@@ -11,6 +11,7 @@ const NAV_ITEMS = [
   { href: "/admin/resellers", label: "Revendeurs", icon: <IconUsers /> },
   { href: "/admin/products", label: "Catalogue", icon: <IconPackage /> },
   { href: "/admin/administrateurs", label: "Administrateurs", icon: <IconUserCog /> },
+  { href: "/admin/journal", label: "Journal", icon: <IconHistory /> },
 ];
 
 export default async function AdminLayout({ children }: { children: React.ReactNode }) {

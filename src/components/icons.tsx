@@ -91,6 +91,16 @@ export function IconSettings(props: IconProps) {
   );
 }
 
+export function IconHistory(props: IconProps) {
+  return (
+    <svg {...base} {...props}>
+      <path d="M4 12a8 8 0 1 0 2.6-5.9" />
+      <path d="M4 5v4h4" />
+      <path d="M12 8v4l3 2" />
+    </svg>
+  );
+}
+
 export function IconReceipt(props: IconProps) {
   return (
     <svg {...base} {...props}>

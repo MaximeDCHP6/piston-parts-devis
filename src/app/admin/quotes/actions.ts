@@ -6,6 +6,8 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { isResellerFileType } from "@/lib/status";
+import { getCurrentUser } from "@/lib/auth";
+import { logAction } from "@/lib/audit";
 import type { QuoteStatus, Product } from "@/lib/types/database";
 
 const LineSchema = z.object({
@@ -169,6 +171,9 @@ export async function createQuote(
     parsed.data.client_address || null,
   );
 
+  const currentUser = await getCurrentUser();
+  await logAction(supabase, currentUser?.id, "quote.created", "quote", quote.id);
+
   revalidatePath("/admin/quotes");
   redirect(`/admin/quotes/${quote.id}`);
 }
@@ -246,6 +251,9 @@ export async function updateQuote(
     parsed.data.client_address || null,
   );
 
+  const currentUser = await getCurrentUser();
+  await logAction(supabase, currentUser?.id, "quote.updated", "quote", quoteId);
+
   revalidatePath(`/admin/quotes/${quoteId}`);
   redirect(`/admin/quotes/${quoteId}`);
 }
@@ -274,7 +282,9 @@ export async function searchProducts(query: string) {
 export async function deleteQuote(formData: FormData) {
   const id = String(formData.get("id"));
   const supabase = await createClient();
+  const currentUser = await getCurrentUser();
   await supabase.from("quotes").delete().eq("id", id);
+  await logAction(supabase, currentUser?.id, "quote.deleted", "quote", id);
   revalidatePath("/admin/quotes");
   redirect("/admin/quotes");
 }
@@ -286,6 +296,8 @@ export async function markQuoteSent(quoteId: string, redirectTo: string) {
     .update({ status: "sent", sent_at: new Date().toISOString() })
     .eq("id", quoteId)
     .eq("status", "draft");
+  const currentUser = await getCurrentUser();
+  await logAction(supabase, currentUser?.id, "quote.sent", "quote", quoteId);
   revalidatePath(redirectTo);
   redirect(redirectTo);
 }
@@ -312,6 +324,9 @@ export async function markQuoteAccepted(quoteId: string, redirectTo: string) {
       reseller_id: quote.reseller_id,
       status: "preparation",
     });
+
+    const currentUser = await getCurrentUser();
+    await logAction(supabase, currentUser?.id, "quote.accepted", "quote", quoteId);
   }
 
   revalidatePath(redirectTo);
@@ -325,6 +340,8 @@ export async function markQuoteRefused(quoteId: string, redirectTo: string) {
     .update({ status: "refused" })
     .eq("id", quoteId)
     .in("status", ACTIONABLE_STATUSES);
+  const currentUser = await getCurrentUser();
+  await logAction(supabase, currentUser?.id, "quote.refused", "quote", quoteId);
   revalidatePath(redirectTo);
   redirect(redirectTo);
 }
@@ -341,8 +358,111 @@ export async function markQuoteUnaccepted(quoteId: string, redirectTo: string) {
     .eq("id", quoteId)
     .eq("status", "accepted");
 
+  const currentUser = await getCurrentUser();
+  await logAction(supabase, currentUser?.id, "quote.unaccepted", "quote", quoteId);
+
   revalidatePath(redirectTo);
   redirect(redirectTo);
+}
+
+// Duplique un devis existant (nouvelles lignes/coûts, nouveau token,
+// statut "draft"), pour recréer rapidement un devis récurrent sans
+// tout ressaisir. Les dates d'envoi/acceptation ne sont jamais copiées.
+export async function duplicateQuote(quoteId: string) {
+  const supabase = await createClient();
+
+  const { data: original } = await supabase.from("quotes").select("*").eq("id", quoteId).single();
+  if (!original) redirect("/admin/quotes");
+
+  const { data: lines } = await supabase
+    .from("quote_lines")
+    .select("*")
+    .eq("quote_id", quoteId)
+    .order("line_order", { ascending: true });
+
+  const { data: costs } =
+    lines && lines.length > 0
+      ? await supabase
+          .from("quote_line_costs")
+          .select("*")
+          .in("quote_line_id", lines.map((l) => l.id))
+      : { data: [] as { quote_line_id: string; cost_price: number }[] };
+  const costByLineId = new Map((costs ?? []).map((c) => [c.quote_line_id, c.cost_price]));
+
+  const { data: newQuote, error } = await supabase
+    .from("quotes")
+    .insert({
+      reseller_id: original.reseller_id,
+      type: "to_client",
+      status: "draft",
+      client_name: original.client_name,
+      client_email: original.client_email,
+      client_address: original.client_address,
+      vehicle_registration: original.vehicle_registration,
+      order_number: null,
+      quote_number: null,
+      valid_until: null,
+      secure_token: nanoid(32),
+    })
+    .select("id")
+    .single();
+
+  if (error || !newQuote) redirect(`/admin/quotes/${quoteId}`);
+
+  if (lines && lines.length > 0) {
+    const { data: insertedLines } = await supabase
+      .from("quote_lines")
+      .insert(
+        lines.map((line, index) => ({
+          quote_id: newQuote.id,
+          product_id: line.product_id,
+          description: line.description,
+          quantity: line.quantity,
+          unit_price: line.unit_price,
+          discount_percent: line.discount_percent,
+          vat_rate: line.vat_rate,
+          line_order: index,
+        })),
+      )
+      .select("id");
+
+    if (insertedLines) {
+      await supabase.from("quote_line_costs").insert(
+        insertedLines.map((line, index) => ({
+          quote_line_id: line.id,
+          cost_price: costByLineId.get(lines[index].id) ?? 0,
+        })),
+      );
+    }
+  }
+
+  const currentUser = await getCurrentUser();
+  await logAction(supabase, currentUser?.id, "quote.duplicated", "quote", newQuote.id, { source_quote_id: quoteId });
+
+  revalidatePath("/admin/quotes");
+  redirect(`/admin/quotes/${newQuote.id}/edit`);
+}
+
+export interface QuoteNoteState {
+  error: string | null;
+}
+
+export async function saveQuoteNote(
+  quoteId: string,
+  _prevState: QuoteNoteState,
+  formData: FormData,
+): Promise<QuoteNoteState> {
+  const note = String(formData.get("note") ?? "");
+  const supabase = await createClient();
+
+  const { error } = await supabase
+    .from("quote_notes")
+    .upsert({ quote_id: quoteId, note, updated_at: new Date().toISOString() });
+
+  if (error) return { error: error.message };
+
+  revalidatePath(`/admin/quotes/${quoteId}`);
+  return { error: null };
 }
 
 export interface UploadQuoteFileState {

@@ -119,6 +119,12 @@ export type ClientContact = {
   created_at: string;
 };
 
+export type QuoteNote = {
+  quote_id: string;
+  note: string;
+  updated_at: string;
+};
+
 export type AuditLog = {
   id: string;
   actor_id: string | null;
@@ -149,6 +155,7 @@ export type Database = {
       audit_logs: TableDef<AuditLog, Partial<AuditLog> & { action: string }>;
       quote_line_costs: TableDef<QuoteLineCost, QuoteLineCost>;
       client_contacts: TableDef<ClientContact, Partial<ClientContact> & { reseller_id: string; name: string }>;
+      quote_notes: TableDef<QuoteNote, Partial<QuoteNote> & { quote_id: string }>;
     };
     Views: Record<string, never>;
     Functions: Record<string, never>;

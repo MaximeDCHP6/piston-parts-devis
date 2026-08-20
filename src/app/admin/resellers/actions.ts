@@ -6,6 +6,8 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { createServiceClient } from "@/lib/supabase/service";
+import { getCurrentUser } from "@/lib/auth";
+import { logAction } from "@/lib/audit";
 
 const ResellerSchema = z.object({
   company_name: z.string().trim().min(1, "Le nom du revendeur est requis."),
@@ -91,6 +93,9 @@ export async function createReseller(
     await supabase.from("resellers").update({ logo_url: logoUrl }).eq("id", reseller.id);
   }
 
+  const currentUser = await getCurrentUser();
+  await logAction(supabase, currentUser?.id, "reseller.created", "reseller", reseller.id);
+
   revalidatePath("/admin/resellers");
   redirect(`/admin/resellers/${reseller.id}`);
 }
@@ -135,6 +140,7 @@ export async function updateReseller(
 export async function deleteReseller(formData: FormData) {
   const id = String(formData.get("id"));
   const serviceClient = createServiceClient();
+  const currentUser = await getCurrentUser();
 
   const { data: reseller } = await serviceClient.from("resellers").select("user_id").eq("id", id).single();
   if (reseller?.user_id) {
@@ -142,6 +148,7 @@ export async function deleteReseller(formData: FormData) {
   }
 
   await serviceClient.from("resellers").delete().eq("id", id);
+  await logAction(serviceClient, currentUser?.id, "reseller.deleted", "reseller", id);
 
   revalidatePath("/admin/resellers");
   redirect("/admin/resellers");
@@ -188,6 +195,9 @@ export async function createResellerLogin(
 
   if (linkError) return { error: linkError.message, password: null };
 
+  const currentUser = await getCurrentUser();
+  await logAction(serviceClient, currentUser?.id, "reseller.login_created", "reseller", resellerId);
+
   revalidatePath(`/admin/resellers/${resellerId}`);
   return { error: null, password };
 }
@@ -218,6 +228,9 @@ export async function resetResellerPassword(
   const password = nanoid(14);
   const { error } = await serviceClient.auth.admin.updateUserById(reseller.user_id, { password });
   if (error) return { error: error.message, password: null };
+
+  const currentUser = await getCurrentUser();
+  await logAction(serviceClient, currentUser?.id, "reseller.password_reset", "reseller", resellerId);
 
   return { error: null, password };
 }

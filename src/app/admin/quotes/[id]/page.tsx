@@ -16,8 +16,11 @@ import {
   uploadQuoteFile,
   deleteQuoteFile,
   deleteQuote,
+  duplicateQuote,
+  saveQuoteNote,
 } from "../actions";
 import { QuoteFileUploadForm } from "./QuoteFileUploadForm";
+import { QuoteNoteForm } from "./QuoteNoteForm";
 import type { QuoteStatus } from "@/lib/types/database";
 
 export default async function QuoteDetailPage({
@@ -31,10 +34,11 @@ export default async function QuoteDetailPage({
   const { data: quote } = await supabase.from("quotes").select("*").eq("id", id).single();
   if (!quote) notFound();
 
-  const [{ data: lines }, { data: reseller }, { data: files }] = await Promise.all([
+  const [{ data: lines }, { data: reseller }, { data: files }, { data: noteRow }] = await Promise.all([
     supabase.from("quote_lines").select("*").eq("quote_id", id).order("line_order", { ascending: true }),
     supabase.from("resellers").select("company_name, signature_text").eq("id", quote.reseller_id).single(),
     supabase.from("reseller_files").select("*").eq("quote_id", id).order("uploaded_at", { ascending: false }),
+    supabase.from("quote_notes").select("note").eq("quote_id", id).maybeSingle(),
   ]);
 
   const resellerName = reseller?.company_name ?? "—";
@@ -47,6 +51,11 @@ export default async function QuoteDetailPage({
         actions={
           <div className="flex items-center gap-3">
             <Badge tone={QUOTE_STATUS_TONE[quote.status as QuoteStatus]}>{QUOTE_STATUS_LABEL[quote.status as QuoteStatus]}</Badge>
+            <form action={duplicateQuote.bind(null, id)}>
+              <Button type="submit" variant="secondary" size="sm">
+                Dupliquer
+              </Button>
+            </form>
             <ButtonLink href={`/admin/quotes/${id}/edit`} variant="secondary" size="sm">
               Modifier
             </ButtonLink>
@@ -136,6 +145,15 @@ export default async function QuoteDetailPage({
               ))}
             </ul>
           )}
+        </CardBody>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <p className="font-display text-lg text-ink">Notes internes</p>
+        </CardHeader>
+        <CardBody>
+          <QuoteNoteForm action={saveQuoteNote.bind(null, id)} initialNote={noteRow?.note ?? ""} />
         </CardBody>
       </Card>
 

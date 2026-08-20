@@ -4,6 +4,7 @@ import { nanoid } from "nanoid";
 import { revalidatePath } from "next/cache";
 import { createServiceClient } from "@/lib/supabase/service";
 import { getCurrentUser } from "@/lib/auth";
+import { logAction } from "@/lib/audit";
 
 export interface CreateAdminState {
   error: string | null;
@@ -39,6 +40,9 @@ export async function createAdminAccount(
 
   if (roleError) return { error: roleError.message, password: null };
 
+  const currentUser = await getCurrentUser();
+  await logAction(serviceClient, currentUser?.id, "admin.created", "profile", created.user.id);
+
   revalidatePath("/admin/administrateurs");
   return { error: null, password };
 }
@@ -57,6 +61,10 @@ export async function resetAdminPassword(
   const password = nanoid(14);
   const { error } = await serviceClient.auth.admin.updateUserById(userId, { password });
   if (error) return { error: error.message, password: null };
+
+  const currentUser = await getCurrentUser();
+  await logAction(serviceClient, currentUser?.id, "admin.password_reset", "profile", userId);
+
   return { error: null, password };
 }
 
@@ -82,6 +90,8 @@ export async function deleteAdminAccount(
 
   const { error } = await serviceClient.auth.admin.deleteUser(userId);
   if (error) return { error: error.message };
+
+  await logAction(serviceClient, currentUser?.id, "admin.deleted", "profile", userId);
 
   revalidatePath("/admin/administrateurs");
   return { error: null };
