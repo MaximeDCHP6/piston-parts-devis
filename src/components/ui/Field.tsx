@@ -2,7 +2,7 @@ import type { InputHTMLAttributes, ReactNode, SelectHTMLAttributes, TextareaHTML
 import { cn } from "@/lib/cn";
 
 const controlClass =
-  "w-full rounded-sm border border-border bg-surface px-3 h-10 text-sm text-ink placeholder:text-muted focus:outline-2 focus:outline-offset-1 focus:outline-accent";
+  "w-full rounded-md border border-border bg-surface px-3 h-10 text-sm text-ink placeholder:text-muted transition-colors hover:border-ink/30 focus:border-accent focus:outline-2 focus:outline-offset-1 focus:outline-accent/40";
 
 interface FieldProps {
   label: string;

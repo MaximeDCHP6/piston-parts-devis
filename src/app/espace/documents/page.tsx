@@ -32,7 +32,7 @@ export default async function EspaceDocumentsPage({
 
   return (
     <div className="flex flex-col gap-6">
-      <PageHeader title="Documents" description="Factures et documents déposés par Gravelin Parts." />
+      <PageHeader title="Documents" description="Factures et documents déposés." />
 
       <QuickFilters
         showSearch={false}

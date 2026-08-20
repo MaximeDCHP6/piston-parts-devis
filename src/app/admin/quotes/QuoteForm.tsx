@@ -19,6 +19,12 @@ interface DraftFields {
   quoteNumber: string;
   orderNumber: string;
   vehicleRegistration: string;
+  quoteDate: string;
+}
+
+function toDateInputValue(value?: string | null) {
+  if (!value) return new Date().toISOString().slice(0, 10);
+  return value.slice(0, 10);
 }
 
 export function QuoteForm({
@@ -48,6 +54,7 @@ export function QuoteForm({
   const [quoteNumber, setQuoteNumber] = useState(initialQuote?.quote_number ?? "");
   const [orderNumber, setOrderNumber] = useState(initialQuote?.order_number ?? "");
   const [vehicleRegistration, setVehicleRegistration] = useState(initialQuote?.vehicle_registration ?? "");
+  const [quoteDate, setQuoteDate] = useState(toDateInputValue(initialQuote?.created_at));
   const [restoredDraft, setRestoredDraft] = useState(false);
   const [linesResetKey, setLinesResetKey] = useState(0);
 
@@ -71,6 +78,7 @@ export function QuoteForm({
           if (draft.quoteNumber) setQuoteNumber(draft.quoteNumber);
           if (draft.orderNumber) setOrderNumber(draft.orderNumber);
           if (draft.vehicleRegistration) setVehicleRegistration(draft.vehicleRegistration);
+          if (draft.quoteDate) setQuoteDate(draft.quoteDate);
           setRestoredDraft(true);
           /* eslint-enable react-hooks/set-state-in-effect */
         }
@@ -92,6 +100,7 @@ export function QuoteForm({
       quoteNumber,
       orderNumber,
       vehicleRegistration,
+      quoteDate,
     };
     try {
       localStorage.setItem(QUOTE_DRAFT_FIELDS_KEY, JSON.stringify(draft));
@@ -108,6 +117,7 @@ export function QuoteForm({
     quoteNumber,
     orderNumber,
     vehicleRegistration,
+    quoteDate,
   ]);
 
   const marginPercent = resellers.find((r) => r.id === resellerId)?.margin_percent ?? 0;
@@ -134,6 +144,7 @@ export function QuoteForm({
     setQuoteNumber("");
     setOrderNumber("");
     setVehicleRegistration("");
+    setQuoteDate(toDateInputValue());
     setRestoredDraft(false);
     setLinesResetKey((k) => k + 1);
   }
@@ -167,6 +178,13 @@ export function QuoteForm({
               </option>
             ))}
           </Select>
+        </Field>
+        <Field
+          label="Date du devis"
+          htmlFor="quote_date"
+          hint="Aujourd'hui par défaut — modifiable pour enregistrer un ancien devis."
+        >
+          <Input id="quote_date" name="quote_date" type="date" value={quoteDate} onChange={(e) => setQuoteDate(e.target.value)} />
         </Field>
         <Field label="Date de validité" htmlFor="valid_until">
           <Input id="valid_until" name="valid_until" type="date" value={validUntil} onChange={(e) => setValidUntil(e.target.value)} />

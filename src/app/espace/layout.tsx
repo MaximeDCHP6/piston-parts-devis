@@ -3,13 +3,14 @@ import { getCurrentUser } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
 import { AppShell } from "@/components/shell/AppShell";
 import { SignOutButton } from "@/components/shell/SignOutButton";
+import { IconGrid, IconFileText, IconCart, IconFolder, IconSettings } from "@/components/icons";
 
 const NAV_ITEMS = [
-  { href: "/espace", label: "Tableau de bord" },
-  { href: "/espace/devis", label: "Devis" },
-  { href: "/espace/commandes", label: "Commandes" },
-  { href: "/espace/documents", label: "Documents" },
-  { href: "/espace/parametres", label: "Paramètres" },
+  { href: "/espace", label: "Tableau de bord", icon: <IconGrid /> },
+  { href: "/espace/devis", label: "Devis", icon: <IconFileText /> },
+  { href: "/espace/commandes", label: "Commandes", icon: <IconCart /> },
+  { href: "/espace/documents", label: "Documents", icon: <IconFolder /> },
+  { href: "/espace/parametres", label: "Paramètres", icon: <IconSettings /> },
 ];
 
 export default async function EspaceLayout({ children }: { children: React.ReactNode }) {

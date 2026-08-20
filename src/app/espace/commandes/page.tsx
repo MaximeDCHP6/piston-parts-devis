@@ -92,7 +92,7 @@ export default async function EspaceOrdersPage({
                 <th className="px-4 py-3 font-medium">Client</th>
                 <th className="px-4 py-3 font-medium">Statut</th>
                 <th className="px-4 py-3 font-medium">Créée le</th>
-                <th className="px-4 py-3 font-medium">Devis</th>
+                <th className="px-4 py-3 font-medium">Détail</th>
               </tr>
             </thead>
             <tbody>
@@ -106,8 +106,8 @@ export default async function EspaceOrdersPage({
                   </td>
                   <td className="px-4 py-3 text-muted">{new Date(order.created_at).toLocaleDateString("fr-FR")}</td>
                   <td className="px-4 py-3">
-                    <Link href={`/espace/devis/${order.quote_id}`} className="text-sm text-accent hover:underline">
-                      Voir le devis
+                    <Link href={`/espace/commandes/${order.id}`} className="text-sm text-accent hover:underline">
+                      Voir la commande
                     </Link>
                   </td>
                 </tr>

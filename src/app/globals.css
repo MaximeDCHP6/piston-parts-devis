@@ -77,6 +77,37 @@ body {
   color: var(--ink);
 }
 
+html {
+  scroll-behavior: smooth;
+}
+
+::selection {
+  background: color-mix(in srgb, var(--accent) 30%, transparent);
+}
+
+/* Léger relief moderne sur les tableaux de données, sans toucher à chaque page. */
+table tbody tr {
+  transition: background-color 120ms ease;
+}
+table tbody tr:hover {
+  background: var(--overlay);
+}
+
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: var(--border);
+  border-radius: 999px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--muted);
+}
+
 @media print {
   body {
     background: #ffffff;

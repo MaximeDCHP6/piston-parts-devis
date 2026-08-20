@@ -8,6 +8,7 @@ import { cn } from "@/lib/cn";
 export interface NavItem {
   href: string;
   label: string;
+  icon?: ReactNode;
 }
 
 export function AppShell({
@@ -36,12 +37,13 @@ export function AppShell({
             href={item.href}
             onClick={() => setOpen(false)}
             className={cn(
-              "rounded-sm px-3 py-2 text-sm font-medium transition-colors",
+              "flex items-center gap-2.5 rounded-md px-3 py-2 text-sm font-medium transition-all",
               active
-                ? "bg-ink text-paper"
-                : "text-ink/80 hover:bg-overlay",
+                ? "bg-accent text-accent-foreground shadow-sm"
+                : "text-ink/75 hover:bg-overlay hover:text-ink",
             )}
           >
+            {item.icon && <span className="shrink-0 [&>svg]:h-[18px] [&>svg]:w-[18px]">{item.icon}</span>}
             {item.label}
           </Link>
         );
@@ -49,18 +51,27 @@ export function AppShell({
     </nav>
   );
 
+  const brandMark = (
+    <div className="flex items-center gap-2.5">
+      <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md bg-ink text-sm font-display text-paper">
+        {brand.charAt(0).toUpperCase()}
+      </span>
+      <div>
+        <p className="font-display text-lg leading-tight text-ink">{brand}</p>
+        <p className="text-xs text-muted">{subtitle}</p>
+      </div>
+    </div>
+  );
+
   return (
     <div className="min-h-screen bg-paper">
       <header className="no-print flex items-center justify-between border-b border-border bg-surface px-4 py-3 sm:hidden">
-        <div>
-          <p className="font-display text-lg text-ink">{brand}</p>
-          <p className="text-xs text-muted">{subtitle}</p>
-        </div>
+        {brandMark}
         <button
           type="button"
           onClick={() => setOpen((v) => !v)}
           aria-label="Ouvrir le menu"
-          className="rounded-sm border border-border px-3 py-2 text-sm"
+          className="rounded-md border border-border px-3 py-2 text-sm transition-colors hover:border-ink/30"
         >
           {open ? "Fermer" : "Menu"}
         </button>
@@ -73,12 +84,9 @@ export function AppShell({
             open ? "flex fixed inset-0 z-40 min-h-screen" : "hidden",
           )}
         >
-          <div className="mb-8 hidden sm:block">
-            <p className="font-display text-lg text-ink">{brand}</p>
-            <p className="text-xs text-muted">{subtitle}</p>
-          </div>
+          <div className="mb-8 hidden sm:block">{brandMark}</div>
           {nav}
-          {footer && <div className="mt-auto pt-6">{footer}</div>}
+          {footer && <div className="mt-auto border-t border-border pt-4">{footer}</div>}
         </aside>
 
         <main className="min-w-0 flex-1 px-4 py-6 sm:px-8 sm:py-10">{children}</main>

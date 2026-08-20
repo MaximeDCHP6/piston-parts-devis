@@ -42,6 +42,7 @@ const QuoteSchema = z.object({
   order_number: z.string().trim().optional(),
   quote_number: z.string().trim().optional(),
   valid_until: z.string().optional(),
+  quote_date: z.string().optional(),
   lines: LinesJsonSchema,
 });
 
@@ -59,8 +60,18 @@ function parseQuote(formData: FormData) {
     order_number: formData.get("order_number"),
     quote_number: formData.get("quote_number"),
     valid_until: formData.get("valid_until"),
+    quote_date: formData.get("quote_date"),
     lines: formData.get("lines"),
   });
+}
+
+// Un devis créé pour une date passée (saisie rétroactive) doit garder cette
+// date en `created_at`, sinon il apparaîtrait daté d'aujourd'hui dans les
+// listes et filtres. Midi évite tout décalage de jour lié au fuseau horaire.
+function resolveQuoteDate(quoteDate: string | undefined) {
+  if (!quoteDate) return undefined;
+  const parsed = new Date(`${quoteDate}T12:00:00`);
+  return Number.isNaN(parsed.getTime()) ? undefined : parsed.toISOString();
 }
 
 // Enregistre l'adresse du client dans le carnet du revendeur si elle n'y
@@ -119,6 +130,7 @@ export async function createQuote(
       quote_number: parsed.data.quote_number || null,
       valid_until: parsed.data.valid_until || null,
       secure_token: secureToken,
+      created_at: resolveQuoteDate(parsed.data.quote_date),
     })
     .select("id")
     .single();
@@ -185,6 +197,7 @@ export async function updateQuote(
       order_number: parsed.data.order_number || null,
       quote_number: parsed.data.quote_number || null,
       valid_until: parsed.data.valid_until || null,
+      ...(parsed.data.quote_date ? { created_at: resolveQuoteDate(parsed.data.quote_date) } : {}),
     })
     .eq("id", quoteId);
 

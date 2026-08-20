@@ -15,8 +15,8 @@ const displayFont = Fraunces({
 });
 
 export const metadata: Metadata = {
-  title: "Piston — Devis Gravelin Parts",
-  description: "Plateforme de devis pour le réseau de revendeurs Gravelin Parts.",
+  title: "Piston — Devis",
+  description: "Plateforme de devis pour le réseau de revendeurs ALDER.",
 };
 
 // Appliqué avant l'hydratation pour éviter un flash du mauvais thème au
