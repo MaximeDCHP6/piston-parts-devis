@@ -32,6 +32,13 @@ export default async function EspaceQuoteDetailPage({
     supabase.from("reseller_files").select("*").eq("quote_id", id).order("uploaded_at", { ascending: false }),
   ]);
 
+  const lineIds = (lines ?? []).map((l) => l.id);
+  const { data: costs } =
+    lineIds.length > 0
+      ? await supabase.from("quote_line_costs").select("*").in("quote_line_id", lineIds)
+      : { data: [] as { quote_line_id: string; cost_price: number }[] };
+  const costByLineId = new Map((costs ?? []).map((c) => [c.quote_line_id, c.cost_price]));
+
   const paths = (files ?? []).map((f) => f.file_url);
   const { data: signedUrls } =
     paths.length > 0 ? await supabase.storage.from("reseller-files").createSignedUrls(paths, 300) : { data: [] };
@@ -53,7 +60,11 @@ export default async function EspaceQuoteDetailPage({
           </ButtonLink>
         </CardHeader>
         <CardBody className="flex flex-col gap-4">
-          {lines && lines.length > 0 ? <QuoteLinesTable lines={lines} /> : <p className="text-sm text-muted">Aucune ligne.</p>}
+          {lines && lines.length > 0 ? (
+            <QuoteLinesTable lines={lines} costByLineId={costByLineId} />
+          ) : (
+            <p className="text-sm text-muted">Aucune ligne.</p>
+          )}
 
           {quote.secure_token && (
             <p className="text-xs text-muted">
