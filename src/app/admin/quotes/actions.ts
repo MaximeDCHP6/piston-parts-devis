@@ -8,6 +8,7 @@ import { createClient } from "@/lib/supabase/server";
 import { isResellerFileType } from "@/lib/status";
 import { getCurrentUser } from "@/lib/auth";
 import { logAction } from "@/lib/audit";
+import { sanitizeFilename } from "@/lib/storage";
 import type { QuoteStatus, Product } from "@/lib/types/database";
 
 const LineSchema = z.object({
@@ -488,7 +489,7 @@ export async function uploadQuoteFile(
   }
 
   const supabase = await createClient();
-  const path = `${resellerId}/quote-${quoteId}/${Date.now()}-${file.name}`;
+  const path = `${resellerId}/quote-${quoteId}/${Date.now()}-${sanitizeFilename(file.name)}`;
 
   const { error: uploadError } = await supabase.storage.from("reseller-files").upload(path, file, {
     contentType: file.type,

@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { isResellerFileType } from "@/lib/status";
+import { sanitizeFilename } from "@/lib/storage";
 
 export interface UploadFileState {
   error: string | null;
@@ -24,7 +25,7 @@ export async function uploadResellerFile(
   }
 
   const supabase = await createClient();
-  const path = `${resellerId}/${Date.now()}-${file.name}`;
+  const path = `${resellerId}/${Date.now()}-${sanitizeFilename(file.name)}`;
 
   const { error: uploadError } = await supabase.storage.from("reseller-files").upload(path, file, {
     contentType: file.type,

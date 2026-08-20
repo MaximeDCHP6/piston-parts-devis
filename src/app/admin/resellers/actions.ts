@@ -8,6 +8,7 @@ import { createClient } from "@/lib/supabase/server";
 import { createServiceClient } from "@/lib/supabase/service";
 import { getCurrentUser } from "@/lib/auth";
 import { logAction } from "@/lib/audit";
+import { sanitizeFilename } from "@/lib/storage";
 
 const ResellerSchema = z.object({
   company_name: z.string().trim().min(1, "Le nom du revendeur est requis."),
@@ -46,8 +47,9 @@ async function uploadLogoIfPresent(resellerId: string, formData: FormData) {
   if (!(file instanceof File) || file.size === 0) return null;
 
   const supabase = await createClient();
-  const ext = file.name.split(".").pop() || "png";
-  const path = `${resellerId}/logo-${Date.now()}.${ext}`;
+  const sanitized = sanitizeFilename(file.name);
+  const ext = sanitized.includes(".") ? sanitized.split(".").pop() : "png";
+  const path = `${resellerId}/logo-${Date.now()}.${ext || "png"}`;
 
   const { error } = await supabase.storage.from("reseller-logos").upload(path, file, {
     upsert: true,
