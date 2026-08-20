@@ -13,8 +13,6 @@ export function buildQuoteEmailTemplate({
     "",
     "Veuillez trouver ci-joint votre devis.",
     "",
-    "N'hésitez pas à revenir vers nous pour toute question.",
-    "",
     "Cordialement,",
     resellerSignature || resellerCompanyName,
   ].join("\n");

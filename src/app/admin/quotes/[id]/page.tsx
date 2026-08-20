@@ -82,10 +82,7 @@ export default async function QuoteDetailPage({
 
           {["draft", "sent", "viewed"].includes(quote.status) && (
             <div className="flex items-center gap-3 border-t border-border pt-4">
-              <p className="text-sm text-muted">
-                Accord de commande obtenu (téléphone, e-mail…) ? Validez directement ici — pas besoin que le client
-                passe par le lien.
-              </p>
+              <p className="text-sm text-muted">Accord obtenu ?</p>
               <form action={markQuoteAccepted.bind(null, id, `/admin/quotes/${id}`)}>
                 <Button type="submit" size="sm">
                   Marquer comme accepté
@@ -117,10 +114,7 @@ export default async function QuoteDetailPage({
           <p className="font-display text-lg text-ink">Pièces jointes ERP</p>
         </CardHeader>
         <CardBody className="flex flex-col gap-4">
-          <p className="text-sm text-muted">
-            Le vrai devis/facture fournisseur (émis dans votre ERP) peut être joint ici : visible du revendeur sur ce
-            devis, jamais accessible au client final.
-          </p>
+          <p className="text-sm text-muted">Visible du revendeur, jamais du client final.</p>
           <QuoteFileUploadForm action={uploadQuoteFile.bind(null, id, quote.reseller_id)} />
           {files && files.length > 0 && (
             <ul className="flex flex-col gap-2">

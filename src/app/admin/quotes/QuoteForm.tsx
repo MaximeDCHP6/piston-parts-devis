@@ -182,14 +182,14 @@ export function QuoteForm({
         <Field
           label="Date du devis"
           htmlFor="quote_date"
-          hint="Aujourd'hui par défaut — modifiable pour enregistrer un ancien devis."
+          hint="Modifiable pour enregistrer un ancien devis."
         >
           <Input id="quote_date" name="quote_date" type="date" value={quoteDate} onChange={(e) => setQuoteDate(e.target.value)} />
         </Field>
         <Field label="Date de validité" htmlFor="valid_until">
           <Input id="valid_until" name="valid_until" type="date" value={validUntil} onChange={(e) => setValidUntil(e.target.value)} />
         </Field>
-        <Field label="N° de devis" htmlFor="quote_number" hint="Saisi manuellement, selon votre propre numérotation. Laissé vide, une référence est générée automatiquement.">
+        <Field label="N° de devis" htmlFor="quote_number" hint="Laissé vide, généré automatiquement.">
           <Input id="quote_number" name="quote_number" value={quoteNumber} onChange={(e) => setQuoteNumber(e.target.value)} />
         </Field>
 
@@ -198,11 +198,7 @@ export function QuoteForm({
             label="Client existant"
             htmlFor="existing_contact"
             className="sm:col-span-2"
-            hint={
-              contactsForReseller.length > 0
-                ? "Sélectionner pour pré-remplir les champs ci-dessous. Une nouvelle adresse saisie est automatiquement enregistrée."
-                : "Aucun client enregistré pour ce revendeur pour l'instant — la nouvelle adresse saisie ci-dessous sera automatiquement enregistrée."
-            }
+            hint={contactsForReseller.length > 0 ? "Pré-remplit les champs ci-dessous." : "Aucun client enregistré pour ce revendeur."}
           >
             <Select
               id="existing_contact"
@@ -229,7 +225,7 @@ export function QuoteForm({
         <Field label="N° de commande" htmlFor="order_number" hint="Facultatif — référence du bon de commande client.">
           <Input id="order_number" name="order_number" value={orderNumber} onChange={(e) => setOrderNumber(e.target.value)} />
         </Field>
-        <Field label="Immatriculation du véhicule" htmlFor="vehicle_registration" hint="Facultatif — utile pour les pièces auto.">
+        <Field label="Immatriculation du véhicule" htmlFor="vehicle_registration" hint="Facultatif.">
           <Input
             id="vehicle_registration"
             name="vehicle_registration"

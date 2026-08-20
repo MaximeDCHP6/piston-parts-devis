@@ -31,9 +31,7 @@ export function QuoteSendActions({
 
   return (
     <div className="flex flex-col gap-3">
-      <p className="text-xs text-muted">
-        Téléchargez le PDF, puis ouvrez Outlook (ou collez le texte) : n&apos;oubliez pas de joindre le PDF téléchargé, un lien mailto ne peut pas le faire automatiquement.
-      </p>
+      <p className="text-xs text-muted">Le lien mailto ne joint pas le PDF — à ajouter manuellement dans Outlook.</p>
       <div className="flex flex-wrap items-center gap-3">
         <ButtonLink href={`/api/quotes/${quoteId}/pdf`} variant="secondary" size="sm">
           Télécharger le PDF

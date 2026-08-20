@@ -269,12 +269,6 @@ export function QuoteLinesEditor({
         ))}
       </div>
 
-      <p className="text-xs text-muted">
-        Le coût sert uniquement au calcul de la marge, il n&apos;apparaît jamais sur le devis ni pour le revendeur. En choisissant une référence
-        déjà vendue à ce revendeur, le dernier prix pratiqué est repris automatiquement ; sinon le prix de base (coût × marge) s&apos;applique.
-        Le prix client reste modifiable à la main.
-      </p>
-
       <div className="flex flex-col items-end gap-1 text-sm">
         <p className="text-muted">
           Total HT : <span className="font-medium text-ink">{formatEUR(totals.totalHT)}</span>
